@@ -14,10 +14,11 @@ public class Quote {
         this.author = author;
     }
 
+    //getter & setters
     public String getText() {
         return text;
     }
-
+    public void setText(String quoteText) { this.text = quoteText; }
     public String getAuthor() {
         return author;
     }
