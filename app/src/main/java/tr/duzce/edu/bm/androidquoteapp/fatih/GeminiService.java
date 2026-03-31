@@ -1,4 +1,4 @@
-package tr.duzce.edu.bm.androidquoteapp;
+package tr.duzce.edu.bm.androidquoteapp.fatih;
 
 import android.os.Build;
 import android.os.Handler;

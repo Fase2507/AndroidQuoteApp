@@ -1,4 +1,4 @@
-package tr.duzce.edu.bm.androidquoteapp;
+package tr.duzce.edu.bm.androidquoteapp.atilla;
 
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;

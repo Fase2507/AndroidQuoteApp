@@ -1,4 +1,4 @@
-package tr.duzce.edu.bm.androidquoteapp;
+package tr.duzce.edu.bm.androidquoteapp.fatih;
 
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;

@@ -1,4 +1,4 @@
-package tr.duzce.edu.bm.androidquoteapp;
+package tr.duzce.edu.bm.androidquoteapp.atilla;
 
 import androidx.room.Dao;
 import androidx.room.Delete;
@@ -7,6 +7,9 @@ import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
 
 import java.util.List;
+
+import tr.duzce.edu.bm.androidquoteapp.atilla.FavoriteQuotes;
+import tr.duzce.edu.bm.androidquoteapp.fatih.Quote;
 
 @Dao
 public interface QuoteDao {

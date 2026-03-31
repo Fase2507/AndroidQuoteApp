@@ -1,4 +1,4 @@
-package tr.duzce.edu.bm.androidquoteapp;
+package tr.duzce.edu.bm.androidquoteapp.fatih;
 
 import java.util.List;
 import retrofit2.Call;
