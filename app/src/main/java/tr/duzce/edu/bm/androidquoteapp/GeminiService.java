@@ -1,5 +1,6 @@
 package tr.duzce.edu.bm.androidquoteapp;
 
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -60,7 +61,10 @@ public class GeminiService {
                 root.put("contents", contentsArray);
 
                 try (OutputStream os = conn.getOutputStream()) {
-                    byte[] input = root.toString().getBytes(StandardCharsets.UTF_8);
+                    byte[] input = null;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                        input = root.toString().getBytes(StandardCharsets.UTF_8);
+                    }
                     os.write(input, 0, input.length);
                 }
 
