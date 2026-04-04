@@ -1,3 +1,23 @@
 <resources>
-    <string name="app_name">AndroidQuoteApp</string>
+    <string name="app_name">Özlü Söz Uygulaması</string>
+    <string name="author">Yazar</string>
+    <string name="translate">Çevir</string>
+    <string name="refresh">yenile</string>
+    <string name="quotePlaceHolder">Sözünüz Burada Gözükecektir.</string>
+    <string name="category">Kategori</string>
+    <string name="favorites">Favoriler</string>
+    <string name="no_favorites">Henüz favori eklenmedi</string>
+    <string name="go_back">Geri Dön</string>
+    <string name="sort_latest">En Yeni</string>
+    <string name="sort_author">Yazar</string>
+    <string name="sort_category">Kategori</string>
+    <string name="settings">Ayarlar</string>
+    <string name="language">Dil</string>
+    <string name="lang_tr">Türkçe</string>
+    <string name="lang_en">İngilizce</string>
+    <string name="theme">Tema</string>
+    <string name="light_theme">Açık Tema</string>
+    <string name="dark_theme">Koyu Tema</string>
+    <string name="system_theme">Sistem Teması</string>
+    <string name="order_by">Sırala:</string>
 </resources>
