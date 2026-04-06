@@ -4,10 +4,10 @@ import com.google.gson.annotations.SerializedName;
 
 public class Quote {
     @SerializedName("q")
-    private String text;
+    private final String text;
     
     @SerializedName("a")
-    private String author;
+    private final String author;
 
     public Quote(String text, String author) {
         this.text = text;
@@ -18,7 +18,6 @@ public class Quote {
     public String getText() {
         return text;
     }
-    public void setText(String quoteText) { this.text = quoteText; }
     public String getAuthor() {
         return author;
     }
