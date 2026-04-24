@@ -8,13 +8,15 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.textview.MaterialTextView;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.FavoriteViewHolder> {
 
+
     private final List<FavoriteQuotes> favoriteList;
     private OnFavoriteClickListener listener;
-
     // Define an interface to handle clicks in the Activity
     public interface OnFavoriteClickListener {
         void onUnfavoriteClick(FavoriteQuotes quote, int position);

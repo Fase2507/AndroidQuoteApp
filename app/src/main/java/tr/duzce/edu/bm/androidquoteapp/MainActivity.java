@@ -1,8 +1,11 @@
 package tr.duzce.edu.bm.androidquoteapp;
 
+import static android.content.ContentValues.TAG;
+
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -14,6 +17,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textview.MaterialTextView;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,7 +27,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
-
+    private static final String TAG = "MainActivity"; // Log tag
     private MaterialTextView textViewQuote;
     private MaterialTextView textViewAuthor;
     private MaterialTextView textViewCategory;
@@ -46,6 +50,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
 
         textViewQuote = findViewById(R.id.textViewQuote);
         textViewAuthor = findViewById(R.id.textViewAuthor);
@@ -98,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onSuccess(String result) {
                             textViewCategory.setText(result);
-                            showLoading(false);
+                            showLoading(true);
                             checkFavoriteStatus(currentQuote.getText());
                         }
 
