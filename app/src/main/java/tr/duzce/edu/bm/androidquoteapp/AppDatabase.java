@@ -1,4 +1,4 @@
-package tr.duzce.edu.bm.androidquoteapp.atilla;
+package tr.duzce.edu.bm.androidquoteapp;
 
 import android.content.Context;
 
@@ -6,7 +6,7 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-@Database(entities = {FavoriteQuotes.class}, version = 1, exportSchema = false)
+@Database(entities = {FavoriteQuotes.class}, version = 2, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static AppDatabase instance;

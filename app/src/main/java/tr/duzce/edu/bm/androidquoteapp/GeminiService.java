@@ -1,4 +1,4 @@
-package tr.duzce.edu.bm.androidquoteapp.fatih;
+package tr.duzce.edu.bm.androidquoteapp;
 
 import android.os.Build;
 import android.os.Handler;
@@ -17,7 +17,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 // Explicitly importing BuildConfig can sometimes resolve issues in the IDE
-import tr.duzce.edu.bm.androidquoteapp.BuildConfig;
+
 
 public class GeminiService {
     private final String apiKey = BuildConfig.GEMINI_API_KEY;

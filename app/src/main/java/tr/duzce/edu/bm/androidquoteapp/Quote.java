@@ -1,4 +1,4 @@
-package tr.duzce.edu.bm.androidquoteapp.fatih;
+package tr.duzce.edu.bm.androidquoteapp;
 
 import com.google.gson.annotations.SerializedName;
 

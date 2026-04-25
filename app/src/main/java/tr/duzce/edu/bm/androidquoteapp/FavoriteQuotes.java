@@ -1,4 +1,4 @@
-package tr.duzce.edu.bm.androidquoteapp.atilla;
+package tr.duzce.edu.bm.androidquoteapp;
 
 import androidx.annotation.NonNull;
 import androidx.room.ColumnInfo;
@@ -8,22 +8,21 @@ import androidx.room.PrimaryKey;
 @Entity(tableName = "favorite_quotes")
 public class FavoriteQuotes {
 
-    // The quote text itself is now the unique identifier (Primary Key)
     @PrimaryKey
     @NonNull
     @ColumnInfo(name = "quoteText")
     private String quoteText;
     private String author;
     private String category;
+    private long timestamp; // Added to store when it was favorited
 
-    // Constructor
-    public FavoriteQuotes(@NonNull String quoteText, String author, String category) {
+    public FavoriteQuotes(@NonNull String quoteText, String author, String category, long timestamp) {
         this.quoteText = quoteText;
         this.author = author;
         this.category = category;
+        this.timestamp = timestamp;
     }
 
-    // Getters and Setters
     @NonNull
     public String getQuoteText() { return quoteText; }
     public void setQuoteText(@NonNull String quoteText) { this.quoteText = quoteText; }
@@ -33,4 +32,7 @@ public class FavoriteQuotes {
 
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
+
+    public long getTimestamp() { return timestamp; }
+    public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
 }

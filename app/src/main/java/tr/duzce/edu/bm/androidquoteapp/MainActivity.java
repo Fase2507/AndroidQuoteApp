@@ -1,26 +1,24 @@
 package tr.duzce.edu.bm.androidquoteapp;
 
+import static android.content.ContentValues.TAG;
+
+import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
-import android.view.MenuItem;
+import android.util.Log;
 import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
-import androidx.core.view.GravityCompat;
 import androidx.core.widget.ImageViewCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
 
-import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
+import com.google.android.material.textview.MaterialTextView;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -28,22 +26,17 @@ import java.util.concurrent.Executors;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import tr.duzce.edu.bm.androidquoteapp.atilla.AppDatabase;
-import tr.duzce.edu.bm.androidquoteapp.atilla.FavoriteQuotes;
-import tr.duzce.edu.bm.androidquoteapp.fatih.GeminiService;
-import tr.duzce.edu.bm.androidquoteapp.fatih.Quote;
-import tr.duzce.edu.bm.androidquoteapp.fatih.RetrofitClient;
-
-public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
-
-    private DrawerLayout drawerLayout;
-    private TextView textViewQuote;
-    private TextView textViewAuthor;
-    private TextView textViewCategory;
-    private Button btnRefresh;
-    private Button btnTranslate;
+public class MainActivity extends AppCompatActivity {
+    private static final String TAG = "MainActivity"; // Log tag
+    private MaterialTextView textViewQuote;
+    private MaterialTextView textViewAuthor;
+    private MaterialTextView textViewCategory;
+    private MaterialButton btnRefresh;
+    private MaterialButton btnTranslate;
+    private MaterialButton btnGoToFavorites;
+    private MaterialButton btnSettings;
     private CircularProgressIndicator progressBar;
-    private ImageView ivFavorite;
+    private FloatingActionButton ivFavorite;
 
     private final GeminiService geminiService = new GeminiService();
     private Quote currentQuote = null;
@@ -57,34 +50,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Use the side bar layout which includes activity_main
-        setContentView(R.layout.activity_side_bar);
+        setContentView(R.layout.activity_main);
 
-        // Setup Toolbar
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
-        // Sidebar Setup
-        drawerLayout = findViewById(R.id.drawer_layout);
-        NavigationView navigationView = findViewById(R.id.nav_view);
-        navigationView.setNavigationItemSelectedListener(this);
 
-        // Passing 'toolbar' to the toggle constructor makes the hamburger icon appear and function automatically
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar,
-                R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawerLayout.addDrawerListener(toggle);
-        toggle.syncState();
-
-        // Initialize Quote UI elements (from the included activity_main)
         textViewQuote = findViewById(R.id.textViewQuote);
         textViewAuthor = findViewById(R.id.textViewAuthor);
         textViewCategory = findViewById(R.id.textViewCategory);
         btnRefresh = findViewById(R.id.btnRefresh);
         btnTranslate = findViewById(R.id.btnTranslate);
+        btnSettings = findViewById(R.id.btnSettings);
+        btnGoToFavorites = findViewById(R.id.btnGoToFavorites);
         progressBar = findViewById(R.id.progressBar);
         ivFavorite = findViewById(R.id.ivFavorite);
-
-        // Initialize DB
+        //initialize db
         database = AppDatabase.getInstance(this);
         executorService = Executors.newSingleThreadExecutor();
 
@@ -92,28 +71,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         btnRefresh.setOnClickListener(v -> fetchNewQuote());
         btnTranslate.setOnClickListener(v -> translateQuote());
+
+        btnGoToFavorites.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, FavoritesActivity.class);
+            startActivity(intent);
+        });
+        btnSettings.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+            startActivity(intent);
+        });
+
         ivFavorite.setOnClickListener(v -> handleFavoriteClick());
     }
-
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.nav_favorites) {
-            Toast.makeText(this, "Favorites clicked", Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.nav_settings) {
-            Toast.makeText(this, "Settings clicked", Toast.LENGTH_SHORT).show();
-        }
-
-        drawerLayout.closeDrawer(GravityCompat.START);
-        return true;
-    }
-
 
     private void fetchNewQuote() {
         showLoading(true);
         isTranslated = false;
-        btnTranslate.setText("Translate");
+        //btnTranslate.setText("Translate");
 
         isFavorited = false;
         updateHeartIcon();
@@ -187,27 +161,35 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void handleFavoriteClick() {
+        // Prevent action if no quote is currently loaded
         if (currentQuote == null || textViewQuote.getText().toString().isEmpty()) return;
 
+        // Get the exact text currently visible on the screen
         String currentText = textViewQuote.getText().toString();
         String currentAuth = textViewAuthor.getText().toString();
         String currentCat = textViewCategory.getText().toString();
 
         executorService.execute(() -> {
             boolean isAdded;
+
             if (isFavorited) {
+                // Remove from database using the text
                 database.quoteDao().deleteByQuoteText(currentText);
                 isFavorited = false;
                 isAdded = false;
             } else {
-                FavoriteQuotes newFavorite = new FavoriteQuotes(currentText, currentAuth, currentCat);
+                // Now passing System.currentTimeMillis() for the timestamp
+                FavoriteQuotes newFavorite = new FavoriteQuotes(currentText, currentAuth, currentCat, System.currentTimeMillis());
                 database.quoteDao().insertFavorite(newFavorite);
                 isFavorited = true;
                 isAdded = true;
             }
 
+            // Update UI on the main thread
             runOnUiThread(() -> {
                 updateHeartIcon();
+
+                // Show the Toast notification
                 if (isAdded) {
                     Toast.makeText(MainActivity.this, "Added to favorites", Toast.LENGTH_SHORT).show();
                 } else {
@@ -219,12 +201,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void updateHeartIcon() {
         if (isFavorited) {
+            // Set the filled heart icon
             ivFavorite.setImageResource(R.drawable.favorite_button_filled_24);
+
+            // Get the red color from Android's default colors (or use your own R.color.red)
             int colorRed = ContextCompat.getColor(this, android.R.color.holo_red_light);
+
+            // Apply the red tint dynamically
             ImageViewCompat.setImageTintList(ivFavorite, ColorStateList.valueOf(colorRed));
         } else {
+            // Set the bordered heart icon
             ivFavorite.setImageResource(R.drawable.favorite_button_border_24);
+
+            // Get the black color
             int colorBlack = ContextCompat.getColor(this, android.R.color.black);
+
+            // Apply the black tint dynamically
             ImageViewCompat.setImageTintList(ivFavorite, ColorStateList.valueOf(colorBlack));
         }
     }
@@ -233,5 +225,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (progressBar != null) progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         if (btnRefresh != null) btnRefresh.setEnabled(!isLoading);
         if (btnTranslate != null) btnTranslate.setEnabled(!isLoading);
+        if (btnGoToFavorites != null) btnGoToFavorites.setEnabled(!isLoading);
     }
 }
