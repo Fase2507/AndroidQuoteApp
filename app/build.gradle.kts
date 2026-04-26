@@ -27,6 +27,11 @@ android {
         
         val apiKey = localProperties.getProperty("GEMINI_API_KEY") ?: "YOUR_API_KEY_HERE"
         buildConfigField("String", "GEMINI_API_KEY", "\"$apiKey\"")
+
+        val mailUsername = localProperties.getProperty("mail.username") ?: ""
+        val mailPassword = localProperties.getProperty("mail.password") ?: ""
+        buildConfigField("String", "MAIL_USERNAME", "\"$mailUsername\"")
+        buildConfigField("String", "MAIL_PASSWORD", "\"$mailPassword\"")
     }
 
     buildTypes {
@@ -47,6 +52,13 @@ android {
         buildConfig = true
         viewBinding = true
     }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/NOTICE.md"
+            excludes += "/META-INF/LICENSE.md"
+        }
+    }
 }
 
 dependencies {
@@ -57,6 +69,8 @@ dependencies {
     
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+
+    implementation(libs.jakarta.mail)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

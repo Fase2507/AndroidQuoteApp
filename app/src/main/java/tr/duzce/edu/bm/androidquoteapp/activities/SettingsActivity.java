@@ -1,18 +1,21 @@
-package tr.duzce.edu.bm.androidquoteapp;
+package tr.duzce.edu.bm.androidquoteapp.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.RadioGroup;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.os.LocaleListCompat;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
+import tr.duzce.edu.bm.androidquoteapp.R;
 
 public class SettingsActivity extends AppCompatActivity {
     private RadioGroup rgLanguage;
     private MaterialButton btnGoBack;
-
     private RadioGroup rgTheme;
-    
+    private MaterialCardView cardProfile;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -21,9 +24,8 @@ public class SettingsActivity extends AppCompatActivity {
         btnGoBack = findViewById(R.id.btnGoBack);
         rgLanguage = findViewById(R.id.rgLanguage);
         rgTheme = findViewById(R.id.rgTheme);
+        cardProfile = findViewById(R.id.cardProfile);
 
-
-        // Set the current selection based on the app's current locale
         String currentLang = AppCompatDelegate.getApplicationLocales().toLanguageTags();
         if (currentLang.startsWith("tr")) {
             rgLanguage.check(R.id.rbTr);
@@ -31,7 +33,6 @@ public class SettingsActivity extends AppCompatActivity {
             rgLanguage.check(R.id.rbEn);
         }
 
-        // Set the current selection based on the app's current theme
         int currentTheme = AppCompatDelegate.getDefaultNightMode();
         if (currentTheme == AppCompatDelegate.MODE_NIGHT_NO) {
             rgTheme.check(R.id.lightThemeBtn);
@@ -43,15 +44,17 @@ public class SettingsActivity extends AppCompatActivity {
 
         btnGoBack.setOnClickListener(v -> finish());
 
+        cardProfile.setOnClickListener(v -> {
+            startActivity(new Intent(SettingsActivity.this, ProfileActivity.class));
+        });
+
         rgLanguage.setOnCheckedChangeListener((radioGroup, checkedId) -> {
-            String languageTag = "en"; // Default
+            String languageTag = "en";
             if (checkedId == R.id.rbTr) {
                 languageTag = "tr";
             } else if (checkedId == R.id.rbEn) {
                 languageTag = "en";
             }
-            
-            // Apply the new locale
             LocaleListCompat appLocale = LocaleListCompat.forLanguageTags(languageTag);
             AppCompatDelegate.setApplicationLocales(appLocale);
         });
@@ -65,6 +68,5 @@ public class SettingsActivity extends AppCompatActivity {
                 AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
             }
         });
-
     }
 }

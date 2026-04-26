@@ -1,4 +1,4 @@
-package tr.duzce.edu.bm.androidquoteapp;
+package tr.duzce.edu.bm.androidquoteapp.activities;
 
 import android.os.Bundle;
 import android.view.View;
@@ -13,6 +13,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import tr.duzce.edu.bm.androidquoteapp.AppDatabase;
+import tr.duzce.edu.bm.androidquoteapp.R;
+import tr.duzce.edu.bm.androidquoteapp.adapters.FavoritesAdapter;
+import tr.duzce.edu.bm.androidquoteapp.models.FavoriteQuotes;
 
 public class FavoritesActivity extends AppCompatActivity {
 
@@ -31,7 +35,6 @@ public class FavoritesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_favorites);
 
-        // Initialize views
         btnGoBack = findViewById(R.id.btnGoBack);
         orderByRadioGroup = findViewById(R.id.sortOptions);
         rvFavorites = findViewById(R.id.rvFavorites);
@@ -43,7 +46,6 @@ public class FavoritesActivity extends AppCompatActivity {
 
         btnGoBack.setOnClickListener(v -> finish());
 
-        // Handle RadioGroup changes
         orderByRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.SortByLatest) {
                 orderByLatest();
@@ -64,7 +66,6 @@ public class FavoritesActivity extends AppCompatActivity {
             runOnUiThread(() -> {
                 progressBar.setVisibility(View.GONE);
                 if (favoriteList != null) {
-                    // Default sort by latest
                     orderByLatest();
                 }
                 updateUI();

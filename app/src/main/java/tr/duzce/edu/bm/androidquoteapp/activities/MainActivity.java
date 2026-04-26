@@ -1,11 +1,8 @@
-package tr.duzce.edu.bm.androidquoteapp;
-
-import static android.content.ContentValues.TAG;
+package tr.duzce.edu.bm.androidquoteapp.activities;
 
 import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -18,7 +15,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textview.MaterialTextView;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -26,8 +22,14 @@ import java.util.concurrent.Executors;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import tr.duzce.edu.bm.androidquoteapp.AppDatabase;
+import tr.duzce.edu.bm.androidquoteapp.R;
+import tr.duzce.edu.bm.androidquoteapp.api.RetrofitClient;
+import tr.duzce.edu.bm.androidquoteapp.models.FavoriteQuotes;
+import tr.duzce.edu.bm.androidquoteapp.models.Quote;
+import tr.duzce.edu.bm.androidquoteapp.services.GeminiService;
+
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "MainActivity"; // Log tag
     private MaterialTextView textViewQuote;
     private MaterialTextView textViewAuthor;
     private MaterialTextView textViewCategory;
@@ -42,7 +44,6 @@ public class MainActivity extends AppCompatActivity {
     private Quote currentQuote = null;
     private boolean isTranslated = false;
 
-    // Database components
     private AppDatabase database;
     private ExecutorService executorService;
     private boolean isFavorited = false;
@@ -51,8 +52,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
 
         textViewQuote = findViewById(R.id.textViewQuote);
         textViewAuthor = findViewById(R.id.textViewAuthor);
@@ -63,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
         btnGoToFavorites = findViewById(R.id.btnGoToFavorites);
         progressBar = findViewById(R.id.progressBar);
         ivFavorite = findViewById(R.id.ivFavorite);
-        //initialize db
+
         database = AppDatabase.getInstance(this);
         executorService = Executors.newSingleThreadExecutor();
 
@@ -73,12 +72,10 @@ public class MainActivity extends AppCompatActivity {
         btnTranslate.setOnClickListener(v -> translateQuote());
 
         btnGoToFavorites.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, FavoritesActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(MainActivity.this, FavoritesActivity.class));
         });
         btnSettings.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(MainActivity.this, SettingsActivity.class));
         });
 
         ivFavorite.setOnClickListener(v -> handleFavoriteClick());
@@ -87,8 +84,6 @@ public class MainActivity extends AppCompatActivity {
     private void fetchNewQuote() {
         showLoading(true);
         isTranslated = false;
-        //btnTranslate.setText("Translate");
-
         isFavorited = false;
         updateHeartIcon();
 
@@ -161,35 +156,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleFavoriteClick() {
-        // Prevent action if no quote is currently loaded
         if (currentQuote == null || textViewQuote.getText().toString().isEmpty()) return;
 
-        // Get the exact text currently visible on the screen
         String currentText = textViewQuote.getText().toString();
         String currentAuth = textViewAuthor.getText().toString();
         String currentCat = textViewCategory.getText().toString();
 
         executorService.execute(() -> {
             boolean isAdded;
-
             if (isFavorited) {
-                // Remove from database using the text
                 database.quoteDao().deleteByQuoteText(currentText);
                 isFavorited = false;
                 isAdded = false;
             } else {
-                // Now passing System.currentTimeMillis() for the timestamp
                 FavoriteQuotes newFavorite = new FavoriteQuotes(currentText, currentAuth, currentCat, System.currentTimeMillis());
                 database.quoteDao().insertFavorite(newFavorite);
                 isFavorited = true;
                 isAdded = true;
             }
 
-            // Update UI on the main thread
             runOnUiThread(() -> {
                 updateHeartIcon();
-
-                // Show the Toast notification
                 if (isAdded) {
                     Toast.makeText(MainActivity.this, "Added to favorites", Toast.LENGTH_SHORT).show();
                 } else {
@@ -201,22 +188,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateHeartIcon() {
         if (isFavorited) {
-            // Set the filled heart icon
             ivFavorite.setImageResource(R.drawable.favorite_button_filled_24);
-
-            // Get the red color from Android's default colors (or use your own R.color.red)
             int colorRed = ContextCompat.getColor(this, android.R.color.holo_red_light);
-
-            // Apply the red tint dynamically
             ImageViewCompat.setImageTintList(ivFavorite, ColorStateList.valueOf(colorRed));
         } else {
-            // Set the bordered heart icon
             ivFavorite.setImageResource(R.drawable.favorite_button_border_24);
-
-            // Get the black color
             int colorBlack = ContextCompat.getColor(this, android.R.color.black);
-
-            // Apply the black tint dynamically
             ImageViewCompat.setImageTintList(ivFavorite, ColorStateList.valueOf(colorBlack));
         }
     }

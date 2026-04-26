@@ -1,4 +1,4 @@
-package tr.duzce.edu.bm.androidquoteapp;
+package tr.duzce.edu.bm.androidquoteapp.services;
 
 import android.os.Build;
 import android.os.Handler;
@@ -16,8 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-// Explicitly importing BuildConfig can sometimes resolve issues in the IDE
-
+import tr.duzce.edu.bm.androidquoteapp.BuildConfig;
 
 public class GeminiService {
     private final String apiKey = BuildConfig.GEMINI_API_KEY;
@@ -48,7 +47,6 @@ public class GeminiService {
                 conn.setRequestProperty("Content-Type", "application/json");
                 conn.setDoOutput(true);
 
-                // Proper Gemini API structure
                 JSONObject root = new JSONObject();
                 JSONArray contentsArray = new JSONArray();
                 JSONObject contentItem = new JSONObject();
@@ -61,10 +59,7 @@ public class GeminiService {
                 root.put("contents", contentsArray);
 
                 try (OutputStream os = conn.getOutputStream()) {
-                    byte[] input = null;
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                        input = root.toString().getBytes(StandardCharsets.UTF_8);
-                    }
+                    byte[] input = root.toString().getBytes(StandardCharsets.UTF_8);
                     os.write(input, 0, input.length);
                 }
 
