@@ -6,7 +6,6 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.List;
@@ -26,7 +25,6 @@ public class ProfileActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_profile);
 
         db = AppDatabase.getInstance(this);
@@ -47,16 +45,12 @@ public class ProfileActivity extends AppCompatActivity {
         String userEmail = pref.getString("current_user_email", "Guest");
         tvEmail.setText(userEmail);
 
-        if (userEmail.equals("Guest")) {
-            tvFavoritesCount.setText(getString(R.string.total_favorites, 0));
-        } else {
-            executorService.execute(() -> {
-                List<FavoriteQuotes> favorites = db.quoteDao().getAllFavorites();
-                runOnUiThread(() -> {
-                    tvFavoritesCount.setText(getString(R.string.total_favorites, favorites.size()));
-                });
+        executorService.execute(() -> {
+            List<FavoriteQuotes> favorites = db.quoteDao().getAllFavorites();
+            runOnUiThread(() -> {
+                tvFavoritesCount.setText(getString(R.string.total_favorites, favorites.size()));
             });
-        }
+        });
     }
 
     private void setupClickListeners() {
@@ -72,5 +66,11 @@ public class ProfileActivity extends AppCompatActivity {
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        executorService.shutdown();
     }
 }
