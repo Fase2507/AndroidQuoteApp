@@ -1,4 +1,4 @@
-package tr.duzce.edu.bm.androidquoteapp;
+package tr.duzce.edu.bm.androidquoteapp.activities;
 
 import android.content.Intent;
 import android.content.res.ColorStateList;
@@ -7,7 +7,9 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
+import androidx.core.widget.ImageViewCompat;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -21,9 +23,15 @@ import java.util.concurrent.Executors;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import tr.duzce.edu.bm.androidquoteapp.AppDatabase;
+import tr.duzce.edu.bm.androidquoteapp.R;
+import tr.duzce.edu.bm.androidquoteapp.api.RetrofitClient;
+import tr.duzce.edu.bm.androidquoteapp.models.FavoriteQuotes;
+import tr.duzce.edu.bm.androidquoteapp.models.Quote;
+import tr.duzce.edu.bm.androidquoteapp.services.GeminiService;
 
 public class MainActivity extends AppCompatActivity {
-
+    private ConstraintLayout mainLayout;
     private MaterialTextView textViewQuote;
     private MaterialTextView textViewAuthor;
     private MaterialTextView textViewCategory;
@@ -32,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private MaterialButton btnGoToFavorites;
     private MaterialButton btnSettings;
     private CircularProgressIndicator progressBar;
-    private FloatingActionButton ivFavorite; 
+    private FloatingActionButton ivFavorite;
 
     private final GeminiService geminiService = new GeminiService();
     private Quote currentQuote = null;
@@ -47,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mainLayout = findViewById(R.id.main);
         textViewQuote = findViewById(R.id.textViewQuote);
         textViewAuthor = findViewById(R.id.textViewAuthor);
         textViewCategory = findViewById(R.id.textViewCategory);
@@ -57,7 +66,6 @@ public class MainActivity extends AppCompatActivity {
         progressBar = findViewById(R.id.progressBar);
         ivFavorite = findViewById(R.id.ivFavorite);
 
-
         database = AppDatabase.getInstance(this);
         executorService = Executors.newSingleThreadExecutor();
 
@@ -67,12 +75,10 @@ public class MainActivity extends AppCompatActivity {
         btnTranslate.setOnClickListener(v -> translateQuote());
 
         btnGoToFavorites.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, FavoritesActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(MainActivity.this, FavoritesActivity.class));
         });
         btnSettings.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
-            startActivity(intent);
+            startActivity(new Intent(MainActivity.this, SettingsActivity.class));
         });
 
         ivFavorite.setOnClickListener(v -> handleFavoriteClick());
@@ -81,8 +87,6 @@ public class MainActivity extends AppCompatActivity {
     private void fetchNewQuote() {
         showLoading(true);
         isTranslated = false;
-        //btnTranslate.setText("Translate");
-
         isFavorited = false;
         updateHeartIcon();
 
@@ -98,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onSuccess(String result) {
                             textViewCategory.setText(result);
+                            updateBackground(result);
                             showLoading(false);
                             checkFavoriteStatus(currentQuote.getText());
                         }
@@ -105,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onError(Exception e) {
                             textViewCategory.setText("General");
+                            updateBackground("General");
                             showLoading(false);
                             checkFavoriteStatus(currentQuote.getText());
                         }
@@ -121,6 +127,32 @@ public class MainActivity extends AppCompatActivity {
                 showLoading(false);
             }
         });
+    }
+
+    private void updateBackground(String category) {
+        if (category == null) return;
+        
+        String normalizedCategory = category.toLowerCase().trim();
+        int backgroundResId;
+
+        if (normalizedCategory.contains("life")) {
+            backgroundResId = R.drawable.bg_life;
+        } else if (normalizedCategory.contains("love")) {
+            backgroundResId = R.drawable.bg_love;
+        } else if (normalizedCategory.contains("humor") || normalizedCategory.contains("funny")) {
+            backgroundResId = R.drawable.bg_humor;
+        } else if (normalizedCategory.contains("wisdom") || normalizedCategory.contains("philosophy")) {
+            backgroundResId = R.drawable.bg_wisdom;
+        } else if (normalizedCategory.contains("motivation") || normalizedCategory.contains("success") || normalizedCategory.contains("inspiration")) {
+            backgroundResId = R.drawable.bg_motivation;
+        } else {
+            // Default or fallback background
+            backgroundResId = android.R.color.white; // Or any other default drawable
+            mainLayout.setBackgroundResource(backgroundResId);
+            return;
+        }
+
+        mainLayout.setBackgroundResource(backgroundResId);
     }
 
     private void translateQuote() {
@@ -168,7 +200,6 @@ public class MainActivity extends AppCompatActivity {
                 isFavorited = false;
                 isAdded = false;
             } else {
-                // Now passing System.currentTimeMillis() for the timestamp
                 FavoriteQuotes newFavorite = new FavoriteQuotes(currentText, currentAuth, currentCat, System.currentTimeMillis());
                 database.quoteDao().insertFavorite(newFavorite);
                 isFavorited = true;
@@ -190,11 +221,11 @@ public class MainActivity extends AppCompatActivity {
         if (isFavorited) {
             ivFavorite.setImageResource(R.drawable.favorite_button_filled_24);
             int colorRed = ContextCompat.getColor(this, android.R.color.holo_red_light);
-            ivFavorite.setImageTintList(ColorStateList.valueOf(colorRed));
+            ImageViewCompat.setImageTintList(ivFavorite, ColorStateList.valueOf(colorRed));
         } else {
             ivFavorite.setImageResource(R.drawable.favorite_button_border_24);
             int colorBlack = ContextCompat.getColor(this, android.R.color.black);
-            ivFavorite.setImageTintList(ColorStateList.valueOf(colorBlack));
+            ImageViewCompat.setImageTintList(ivFavorite, ColorStateList.valueOf(colorBlack));
         }
     }
 

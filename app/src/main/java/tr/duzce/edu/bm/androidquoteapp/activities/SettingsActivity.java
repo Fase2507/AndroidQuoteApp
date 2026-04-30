@@ -1,29 +1,36 @@
-package tr.duzce.edu.bm.androidquoteapp;
+package tr.duzce.edu.bm.androidquoteapp.activities;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.RadioGroup;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.os.LocaleListCompat;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
+
+import tr.duzce.edu.bm.androidquoteapp.R;
 
 public class SettingsActivity extends AppCompatActivity {
     private RadioGroup rgLanguage;
     private MaterialButton btnGoBack;
-
     private RadioGroup rgTheme;
-    
+    private SharedPreferences prefs;
+    private MaterialCardView cardProfile;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
 
+        prefs = getSharedPreferences("settings", MODE_PRIVATE);
         btnGoBack = findViewById(R.id.btnGoBack);
         rgLanguage = findViewById(R.id.rgLanguage);
         rgTheme = findViewById(R.id.rgTheme);
-
-
-        // Set the current selection based on the app's current locale
+        cardProfile = findViewById(R.id.cardProfile);
+        // Initialize Language Selection
         String currentLang = AppCompatDelegate.getApplicationLocales().toLanguageTags();
         if (currentLang.startsWith("tr")) {
             rgLanguage.check(R.id.rbTr);
@@ -31,40 +38,47 @@ public class SettingsActivity extends AppCompatActivity {
             rgLanguage.check(R.id.rbEn);
         }
 
-        // Set the current selection based on the app's current theme
-        int currentTheme = AppCompatDelegate.getDefaultNightMode();
-        if (currentTheme == AppCompatDelegate.MODE_NIGHT_NO) {
+        // Initialize Theme Selection from SharedPreferences
+        int savedTheme = prefs.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+        if (savedTheme == AppCompatDelegate.MODE_NIGHT_NO) {
             rgTheme.check(R.id.lightThemeBtn);
-        } else if (currentTheme == AppCompatDelegate.MODE_NIGHT_YES) {
+        } else if (savedTheme == AppCompatDelegate.MODE_NIGHT_YES) {
             rgTheme.check(R.id.darkThemeBtn);
         } else {
             rgTheme.check(R.id.systemThemeBtn);
         }
 
         btnGoBack.setOnClickListener(v -> finish());
+        cardProfile.setOnClickListener(v -> {
+            startActivity(new Intent(SettingsActivity.this, ProfileActivity.class));
+        });
+
 
         rgLanguage.setOnCheckedChangeListener((radioGroup, checkedId) -> {
-            String languageTag = "en"; // Default
+            String languageTag = "en";
             if (checkedId == R.id.rbTr) {
                 languageTag = "tr";
             } else if (checkedId == R.id.rbEn) {
                 languageTag = "en";
             }
-            
-            // Apply the new locale
             LocaleListCompat appLocale = LocaleListCompat.forLanguageTags(languageTag);
             AppCompatDelegate.setApplicationLocales(appLocale);
         });
 
         rgTheme.setOnCheckedChangeListener((radioGroup, checkedId) -> {
+            int mode;
             if (checkedId == R.id.lightThemeBtn) {
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                mode = AppCompatDelegate.MODE_NIGHT_NO;
             } else if (checkedId == R.id.darkThemeBtn) {
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-            } else if (checkedId == R.id.systemThemeBtn) {
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+                mode = AppCompatDelegate.MODE_NIGHT_YES;
+            } else {
+                mode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
             }
-        });
 
+            // Save to SharedPreferences
+            prefs.edit().putInt("theme_mode", mode).apply();
+            // Apply immediately
+            AppCompatDelegate.setDefaultNightMode(mode);
+        });
     }
 }

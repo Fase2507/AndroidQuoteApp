@@ -1,5 +1,6 @@
-package tr.duzce.edu.bm.androidquoteapp;
+package tr.duzce.edu.bm.androidquoteapp.services;
 
+import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -15,7 +16,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-// Explicitly importing BuildConfig can sometimes resolve issues in the IDE
 import tr.duzce.edu.bm.androidquoteapp.BuildConfig;
 
 public class GeminiService {
@@ -47,7 +47,6 @@ public class GeminiService {
                 conn.setRequestProperty("Content-Type", "application/json");
                 conn.setDoOutput(true);
 
-                // Proper Gemini API structure
                 JSONObject root = new JSONObject();
                 JSONArray contentsArray = new JSONArray();
                 JSONObject contentItem = new JSONObject();

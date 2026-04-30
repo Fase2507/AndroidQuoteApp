@@ -1,0 +1,169 @@
+AppDatabase.java:
+    Database'mizin oluştuğu bir nesne
+    1. @Database(entities = {FavoriteQuotes.class}, version = 2, exportSchema = false)
+    "Bu anotasyon, Room'a 'bu sınıf bir veritabanıdır ve şu tabloyu içerir' diyor.
+
+    version = 2 : Veritabanı şema versiyonumuz. Önemli olan şu: Eğer FavoriteQuotes yapısını değiştirirsek (mesela yeni bir categoryId kolonu eklersek) bu sayıyı 3 yapmamız gerekiyor.
+     Room, versiyon artışını gördüğünde 'şema değişmiş, ne yapayım?' diye sorar. İşte bir sonraki satırda vereceğimiz cevap kritik.
+
+    exportSchema = false : Production'da genelde true olmasını öneririm.
+     Çünkü migration yazarken eski şemayı görmek için schema JSON'larını versiyon kontrolünde tutarız.
+      Şu an geliştirme aşamasında olduğumuz için kapalı, ama canlıya çıkmadan önce açıp room/schemas klasörünü commit'lemeliyiz."
+    ##############################################################################################################################
+    2. public static synchronized AppDatabase getInstance(Context context)
+    "Bu metod, veritabanı nesnesinin uygulama boyunca tek bir kopyasının olmasını garanti eder.
+
+    static : Sınıf seviyesinde tutulan instance değişkenine bu metod üzerinden erişiyoruz.
+     Uygulamanın herhangi bir yerinden AppDatabase.getInstance(context) çağrısı hep aynı objeyi döner.
+
+     synchronized : Eğer iki farklı thread aynı anda getInstance'ı çağırırsa, biri bitmeden diğeri beklemezse iki ayrı veritabanı instance'ı oluşabilir.
+     synchronized ile metodun aynı anda yalnızca bir thread tarafından çalıştırılmasını sağlıyoruz. Bu, veri tutarsızlığının önüne geçen basit ama etkili bir thread-safety önlemi.
+
+    context.getApplicationContext() : Buraya dikkat. Bize bir Activity context'i gelse bile,
+     onu Application context'e çeviriyoruz. Çünkü veritabanı instance'ı, uygulama yaşam döngüsü boyunca ayakta kalmalı.
+      Activity context'i ile bağlarsak, Activity yok edildiğinde memory leak oluşur. Bu satır o riski sıfırlar."
+    ##############################################################################################################################
+    3. .fallbackToDestructiveMigration()
+    "İşte en stratejik kararın verildiği satır. Bu çağrı, Room'a şu komutu veriyor: 'Eğer veritabanı versiyonları arasında bir migration bulamazsan,
+     eski tabloları tamamıyla sil, yeni şemayla sıfırdan oluştur.'
+
+    Neden şu an burada?
+    Geliştirme sürecindeyiz ve FavoriteQuotes tablosunda sürekli yapısal değişiklikler yapıyoruz. Her değişiklik için Migration(2,3) yazmak hızımızı keser.
+     Bu komut sayesinde, uygulamayı silip tekrar yüklediğimizde (ki emülatörde hep bunu yaparız) veri kaybı önemsizdir; çünkü test verileridir.
+
+    Ancak canlıya çıkmadan önce mutlaka değiştireceğiz. Eğer bu satır production'da kalırsa, kullanıcı uygulamayı güncellediğinde tüm favori sözleri bir anda silinir. Geri dönüşü olmayan bir hata olur. İdeal davranış:
+     bir Migration sınıfı yazıp .addMigrations(MIGRATION_2_3) şeklinde tanımlamak ve bu destructive fallback'i kaldırmak. Bunu backlog'a 'PROD öncesi migration stratejisi' olarak ekleyelim."
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+FavoriteQuotes.java
+    Temel hedefimiz favori sözleri tekil olarak saklamak ve sıralayabilmek.
+    Primary Key olarak otomatik artan bir id değil, doğrudan quoteText alanını kullandık.
+    Constructor'da quoteText parametresini @NonNull ile işaretledik; böylece Java tarafında da null geçilmeyeceğini derleme anında belirtiyoruz.
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+FavoritesActivity.java
+    Favori sözlerimizi kullanıcıya sunduğumuz, sıraladığımız ve kaldırdığımız ekran
+    1. Thread Yönetimi: ExecutorService ve UI Güncellemeleri
+    newSingleThreadExecutor() kullanarak tüm veritabanı işlemlerini tek bir arka plan thread'inde sıraya koyuyoruz.
+    runOnUiThread() ile sadece sonuçları UI thread'ine taşıyoruz; bu sayede setVisibility, notifyDataSetChanged gibi View metodlarını güvenle çağırabiliyoruz.
+    onDestroy'da shutdown(): Activity yok edilirken thread havuzunu kapatıyoruz; aksi halde thread'ler arka planda kalmaya devam eder ve potansiyel bellek sızıntısı oluşur.
+    #######################################################################################################################################################################
+    2. RadioGroup ile Sıralama
+    Kullanıcıya üç sıralama seçeneği sunduk: En Yeni (timestamp'a göre), Yazara Göre ve Kategoriye Göre.
+    Burada dikkat edin: sıralama işlemi tamamen client-side yapılıyor, yani elimizdeki favoriteList üzerinde Collections.sort ile sıralayıp adapter'a bildiriyoruz.
+    Eğer liste çok büyürse (binlerce favori), her tıklamada listeyi yeniden sıralamak kasabilir.
+     O zaman DAO'da ORDER BY ile sorgu seviyesinde sıralamaya geçmek daha performanslı olurdu.
+    #######################################################################################################################################################################
+    3. unfavoriteQuote ve Pozisyon Yönetimi
+    "Bu metot, favoriden kaldırma işlemini yönetiyor. İki önemli ayrıntı:
+
+    Veritabanı silme işlemi arka planda yapılıyor, UI hemen güncelleniyor. Bu sayede kullanıcı beklemeden geri bildirim alıyor.
+
+    Silme sonrası adapter.notifyItemRemoved(position) ile RecyclerView'a animasyonlu kaldırma talimatı veriyoruz,
+     ardından notifyItemRangeChanged ile kalan öğelerin pozisyonlarını düzeltiyoruz. Bu standart bir adapter güncelleme kalıbıdır.
+
+    Ancak burada potansiyel bir race condition var: Eğer silme işlemi veritabanında başarısız olursa, UI'dan çoktan kaldırmış oluruz.
+     Hata yönetimi eklenmemiş. İleride onError callback ile geri alma mekanizması ekleyebiliriz.
+     Burada UX açısından önemli bir detay var: Empty State. Eğer kullanıcının hiç favorisi yoksa, boş bir liste göstermek yerine tvEmptyState ile anlamlı bir mesaj gösteriyoruz.
+     adapter'ı sadece ilk kez oluşturuyoruz, sonraki güncellemelerde notifyDataSetChanged yeterli oluyor. Bu da gereksiz adapter oluşturmayı önler."
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+FavoritesAdapter.java
+    Bu sınıf, veri listesi ile arayüz arasındaki köprüdür.
+    RecyclerView.Adapter<FavoriteViewHolder>: Kendi ViewHolder'ımızı parametre vererek RecyclerView'ın adaptasyon mekanizmasını kullanıyoruz.
+    favoriteList: final tanımlanmış; referansı değişmez, içeriği ise silme işleminde güncellenir.
+    listener: Tıklama olaylarını Activity'ye iletmek için tuttuğumuz interface referansı.
+    1. OnFavoriteClickListener ile Tıklama yönetimi
+        Bu interface, adaptörün doğrudan Activity ile konuşmasını sağlayan bir callback mekanizmasıdır. Adaptör, bir öğedeki favori butonuna basıldığında
+        onUnfavoriteClick metodunu çağırarak ilgili sözü ve pozisyonu Activity'ye bildirir. Activity'de ise bu callback'i FavoritesActivity içinde this::unfavoriteQuote şeklinde lambda ile bağlamıştık.
+        Bu basit ve etkili bir pattern. Pozisyon bilgisini de göndermesi, silme sonrası animasyonlu güncelleme yapabilmemiz için önemli.
+    #######################################################################################################################################################################
+    2. FavoriteViewHolder Tanımı
+    Material bileşenler: MaterialTextView ve Chip kullanımı, güncel UI standartlarına uygunluk gösteriyor.
+    #######################################################################################################################################################################
+    4. onBindViewHolder ile Veri Bağlama
+    Burada her bir satır için yazar, söz metni ve kategoriyi ilgili görsellere yazıyoruz. Kategoriyi bir Chip içinde göstermemiz,
+     görsel olarak hoş ve filtrelemeye uygun bir tasarım.
+    Favori ikonuna tıklandığında listener'ı çağırıyoruz. if (listener != null) kontrolü, geri çağırmanın atanmadığı durumlarda çökmeyi önler."
+    ÖNERİLER
+        DiffUtil Eksikliği: Şu an silme sonrası adapter.notifyItemRemoved ve notifyItemRangeChanged kullanılıyor. Bu doğru fakat sıralama değişikliklerinde adapter.notifyDataSetChanged() çağrılıyor ki bu tüm listeyi yeniden çizer, animasyonları yok eder. Liste büyüdüğünde performans sorunu olabilir. DiffUtil kullanarak sadece değişen öğeleri animasyonla güncelleyebiliriz.
+        Pozisyon Güvenliği: onUnfavoriteClick(favorite, position) parametresindeki pozisyon, silme anında doğrudur; ancak asenkron işlemlerde pozisyonun değişme riski her zaman vardır. Daha sağlam bir yöntem, sadece quote nesnesini gönderip Activity'de favoriteList.indexOf(quote) ile pozisyonu tekrar bulmak olabilir. Şimdilik basit tutulduğu için tolere edilebilir.
+        Buton Durum Yönetimi: Eğer kullanıcı hızlıca iki kez tıklarsa, aynı öğe iki kez silinmeye çalışabilir. setEnabled(false) veya bir isClickable kontrolü eklenebilir.
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+GeminiService.java
+    uygulamamızın yapay zeka ile iletişimini sağlayan, Gemini API entegrasyonumuzun merkezi
+    BuildConfig.GEMINI_API_KEY: API anahtarımızı güvenli bir şekilde local.properties veya ortam değişkenlerinden alıp build.gradle aracılığıyla BuildConfig alanına yazıyoruz.
+    Bu sayede anahtar kaynak kodda görünmez. Ancak uygulama paketinden çıkartılabilir; production’da anahtarın sunucu tarafında tutulması önerilir.
+    Executors.newSingleThreadExecutor(): Tüm Gemini isteklerini tek bir arka plan thread'inde sıraya koyar. Aynı anda birden çok istek olursa birbirini beklemesi garantilenir.
+    Handler(Looper.getMainLooper()): Arka plandan UI thread'ine dönüş için kullandığımız köprü.
+    #######################################################################################################################################################################
+    1.Callback interface Başarı ve hataya göre sonuç döndürür.
+    #######################################################################################################################################################################
+    2. categorizeQuote ve translateQuote Metotları
+    "Bu iki metot, Gemini'ye göndereceğimiz prompt'u (istem) oluşturur. Dikkat ederseniz:
+    Belirli kategorileri ve hedef dili seçer ve istenileni yapar.
+    #######################################################################################################################################################################
+    3. generateContent – Esas API İletişimi
+    "Başarılı yanıtta, JSON'ı parse ederek ilk candidate'ın metnini alıyoruz. Sonucu mainHandler ile UI thread'ine taşıyoruz.
+    Hata durumunda ise onError callback'ini tetikliyoruz. Burada Exception oluşturmak yerine özel bir hata sınıfı ile daha zengin bilgi verilebilirdi
+   ÖNERİLER
+            Retrofit Kullanımı: El ile HTTP bağlantısı ve JSON parse etmek hataya açıktır. Retrofit ile @POST("v1beta/models/gemini-flash-latest:generateContent")
+            şeklinde bir arayüz tanımlamak hem kod hacmini azaltır hem de hata yönetimini güçlendirir
+            . OkHttp interceptor'ları ile API anahtarını otomatik ekleyebiliriz.
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+RetrofitClient.java
+     sözleri çektiğimiz ZenQuotes servisine bağlanan RetrofitClient.java
+     ZenQuotes, açık kaynaklı ve ücretsiz bir sözler API'sidir.
+     URL'nin sonunda / olması Retrofit için zorunludur. Eğer unutulursa,
+      endpoint tanımlarıyla birleştirme hatası oluşur (IllegalArgumentException: baseUrl must end in /).
+     static final ile sabit tanımlanması, uygulama boyunca değişmemesini garantile
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+Quote.java
+    API'den gelen verileri Java nesnelerine dönüştüren model sınıfımız olan Quote.java'yı inceleyelim.
+     Bu sınıf, ZenQuotes API'sinden dönen JSON yanıtını doğrudan karşılayan yapıdır
+
+    1. Gson ve @SerializedName Anotasyonu
+        @SerializedName("q"), Gson'a 'JSON'daki q alanını al, Java'daki text değişkenine yaz' talimatını verir.
+
+        @SerializedName("a") ise JSON'daki a alanını author ile eşler.
+
+        Bu sayede dış API'nin garip isimlendirme tercihleri kodumuza yansımaz; dahili olarak anlamlı (text, author) isimler kullanırız.
+         Bu, temiz kod prensiplerine uygun bir soyutlama katmanıdır.
+
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+QuoteApi.java
+
+    2.Call ve List kullanımı
+            Retrofit'te Call, bir sipariş fişi gibidir. Restorana gidip yemek söylediğinizde garson size bir fiş verir; bu fiş yemeğin kendisi değil,
+            siparişinizin takip numarasıdır. Yemek hazır olana kadar beklersiniz.
+            getRandomQuote() hemen bir Call nesnesi döner.
+            Bu Call, isteğin kendisini değil, isteği başlatma yeteneğini taşır.
+            .enqueue() ile siparişi mutfağa (arka plan thread'ine) göndeririz; sonuç geldiğinde onResponse ile bize haber verilir.
+            Call, uygulamanın donmasını engelleyen asenkron fiştir. List<Quote>, API'nin bize verdiği JSON'un formatına zorunlu uyumdur.
+             Birini çıkarırsak ya uygulama donar ya da çöker. İkisi birlikte güvenli ve modern bir HTTP katmanı oluşturur.
+$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
+MainActivity.Java
+    fetchNewQuote - Yeni söz getirme methodu
+    Api çağrısı başarılı ise söz ve yazar bilgisi alınır ve ekrana yazılır
+    2. bir işlem Gemini ile kategorize etme
+    ######
+
+    translateQuote - Çeviri methodu
+    isTranslated bayrağı ile Türkçe-İngilizce arasında gidip gelir.
+    Buton metni dinamik olarak "Translate" / "Show Original" arasında değişir.
+    Orijinal metni bellekte tutmadığı için, çevrilmiş halden geri dönüş için tekrar Gemini'ye "Translate to English" isteği gönderilir.
+     ÖNERİ Orijinal metin currentQuote.getText()'te saklansaydı daha hızlı olurdu.
+    #############
+
+     Favori İşlemleri – handleFavoriteClick
+     isFavorited bayrağı ile toggle mantığı uygulanır.
+     insertFavorite ve deleteByQuoteText DAO metotları kullanılır.
+     İşlem arka planda yapılır, UI hemen güncellenir.
+     System.currentTimeMillis() ile timestamp eklenir.
+    #############
+
+    updateHeartIcon – Görsel Durum Yönetimi
+    Aynı buton iki farklı drawable ve renk ile doldurulmuş/boş kalp olarak gösterilir.
+    ColorStateList ile programatik renklendirme yapılır.
+
+    [ZenQuotes API]  ←→  RetrofitClient  ←→  MainActivity  →  [Room DB] → FavoritesActivity
+                                                               ↘  GeminiService → Kategori/Çeviri
+

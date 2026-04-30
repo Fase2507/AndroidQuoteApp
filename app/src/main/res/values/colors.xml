@@ -1,13 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="primary_dark">#7B1FA2</color>
-    <color name="primary_light">#E1BEE7</color>
-    <color name="primary">#9C27B0</color>
+    <!-- Professional Modern Palette: Midnight & Sky -->
+
+    <!-- Light Theme Colors (Clean & Airy) -->
+    <color name="md_theme_light_primary">#0284C7</color>
+    <color name="md_theme_light_onPrimary">#FFFFFF</color>
+    <color name="md_theme_light_primaryContainer">#E0F2FE</color>
+    <color name="md_theme_light_onPrimaryContainer">#0C4A6E</color>
+    <color name="md_theme_light_secondary">#64748B</color>
+    <color name="md_theme_light_onSecondary">#FFFFFF</color>
+    <color name="md_theme_light_background">#F8FAFC</color>
+    <color name="md_theme_light_onBackground">#0F172A</color>
+    <color name="md_theme_light_surface">#FFFFFF</color>
+    <color name="md_theme_light_onSurface">#0F172A</color>
+    <color name="md_theme_light_outline">#CBD5E1</color>
+
+    <!-- Dark Theme Colors (Deep Midnight Blue) -->
+    <color name="md_theme_dark_primary">#38BDF8</color>
+    <color name="md_theme_dark_onPrimary">#0C4A6E</color>
+    <color name="md_theme_dark_primaryContainer">#075985</color>
+    <color name="md_theme_dark_onPrimaryContainer">#E0F2FE</color>
+    <color name="md_theme_dark_secondary">#94A3B8</color>
+    <color name="md_theme_dark_onSecondary">#0F172A</color>
+    <color name="md_theme_dark_background">#0F172A</color>
+    <color name="md_theme_dark_onBackground">#F1F5F9</color>
+    <color name="md_theme_dark_surface">#1E293B</color>
+    <color name="md_theme_dark_onSurface">#F1F5F9</color>
+    <color name="md_theme_dark_outline">#475569</color>
+
+    <!-- UI Overlay Colors -->
+    <color name="transparent_black_40">#66000000</color>
+    <color name="transparent_black_60">#99000000</color>
+    <color name="transparent_black_50">#80000000</color>
+
+    <!-- Highlight Palette -->
+    <color name="highlight_gold_start">#FFF9C4</color>
+    <color name="highlight_gold_end">#FFF176</color>
+    <color name="highlight_gold_stroke">#F9A825</color>
+
+    <!-- Brand Constants & Compatibility -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="primary">@color/md_theme_light_primary</color>
+    <color name="primary_dark">#0369A1</color>
+    <color name="primary_light">@color/md_theme_light_primaryContainer</color>
+    <color name="accent">@color/md_theme_light_primary</color>
     <color name="icons">#FFFFFF</color>
-    <color name="accent">#7C4DFF</color>
-    <color name="primary_text">#212121</color>
-    <color name="secondary_text">#757575</color>
-    <color name="divider">#BDBDBD</color>
+    <color name="profile_image_tint">#0284C7</color>
 </resources>

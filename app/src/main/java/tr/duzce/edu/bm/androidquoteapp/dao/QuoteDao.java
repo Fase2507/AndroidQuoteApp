@@ -1,16 +1,15 @@
-package tr.duzce.edu.bm.androidquoteapp;
+package tr.duzce.edu.bm.androidquoteapp.dao;
 
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
 import androidx.room.OnConflictStrategy;
 import androidx.room.Query;
-
 import java.util.List;
+import tr.duzce.edu.bm.androidquoteapp.models.FavoriteQuotes;
 
 @Dao
 public interface QuoteDao {
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertFavorite(FavoriteQuotes quote);
 
