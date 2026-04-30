@@ -8,25 +8,43 @@
     android:padding="24dp"
     tools:context=".MainActivity">
 
-    <TextView
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnGoToFavorites"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/favorites"
+        app:icon="@drawable/favorite_button_filled_24"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSettings"
+        style="@style/Widget.Material3.Button.IconButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:icon="@drawable/baseline_settings_24"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/textViewCategory"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="36dp"
-        android:layout_marginEnd="16dp"
-        android:text="Category"
-        android:textSize="14sp"
+        android:layout_marginBottom="8dp"
+        android:text="@string/category"
+        android:textAppearance="?attr/textAppearanceLabelLarge"
         android:textStyle="italic"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintBottom_toTopOf="@id/textViewQuote"
+        app:layout_constraintEnd_toEndOf="@id/textViewQuote" />
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/textViewQuote"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="Your quote will appear here."
-        android:textSize="20sp"
+        android:text="@string/quotePlaceHolder"
+        android:textAppearance="?attr/textAppearanceHeadlineMedium"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -39,45 +57,60 @@
         android:id="@+id/layoutButtons"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="24dp"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/textViewQuote">
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRefresh"
+            style="@style/Widget.Material3.Button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:text="Refresh" />
+            android:layout_marginEnd="12dp"
+            android:text="@string/refresh" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnTranslate"
+            style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Translate" />
+            android:text="@string/translate" />
     </LinearLayout>
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/textViewAuthor"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="48dp"
-        android:text="- Author"
-        android:textSize="16sp"
+        android:layout_marginStart="32dp"
+        android:layout_marginBottom="32dp"
+        android:text="@string/author"
+        android:textAppearance="?attr/textAppearanceTitleMedium"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <ProgressBar
+    <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:indeterminate="true"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/ivFavorite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="24dp"
+        android:contentDescription="@string/favorites"
+        android:src="@drawable/favorite_button_border_24"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="@color/black" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
