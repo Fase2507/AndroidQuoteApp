@@ -9,7 +9,7 @@ import tr.duzce.edu.bm.androidquoteapp.dao.UserDao;
 import tr.duzce.edu.bm.androidquoteapp.models.FavoriteQuotes;
 import tr.duzce.edu.bm.androidquoteapp.models.User;
 
-@Database(entities = {FavoriteQuotes.class, User.class}, version = 5, exportSchema = false)
+@Database(entities = {FavoriteQuotes.class, User.class}, version = 6, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static AppDatabase instance;

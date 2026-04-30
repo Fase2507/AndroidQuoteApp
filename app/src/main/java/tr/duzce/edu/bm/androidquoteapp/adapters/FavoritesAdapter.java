@@ -35,25 +35,53 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.View
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         FavoriteQuotes quote = favoriteQuotes.get(position);
+
         holder.tvQuote.setText(quote.getQuoteText());
         holder.tvAuthor.setText(quote.getAuthor());
         holder.tvCategory.setText(quote.getCategory());
 
+        // Highlight Durumu Kontrolü
+        if (quote.isHighlighted()) {
+            holder.cardContainer.setBackgroundResource(R.drawable.bg_highlighted_quote);
+        } else {
+            holder.cardContainer.setBackgroundResource(R.drawable.bg_normal_quote);
+        }
+
         holder.btnUnfavorite.setOnClickListener(v -> {
             if (listener != null) {
-                listener.onUnfavoriteClick(quote, position);
+                listener.onUnfavoriteClick(quote, holder.getAdapterPosition());
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return favoriteQuotes.size();
+        return favoriteQuotes != null ? favoriteQuotes.size() : 0;
+    }
+
+    public void removeItem(int position) {
+        if (position >= 0 && position < favoriteQuotes.size()) {
+            favoriteQuotes.remove(position);
+            notifyItemRemoved(position);
+        }
+    }
+
+    public void toggleHighlight(int position) {
+        if (position >= 0 && position < favoriteQuotes.size()) {
+            FavoriteQuotes quote = favoriteQuotes.get(position);
+            quote.setHighlighted(!quote.isHighlighted());
+            notifyItemChanged(position);
+        }
+    }
+
+    public List<FavoriteQuotes> getList() {
+        return favoriteQuotes;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvQuote, tvAuthor, tvCategory;
         ImageView btnUnfavorite;
+        View cardContainer;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -61,6 +89,7 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.View
             tvAuthor = itemView.findViewById(R.id.tvAuthor);
             tvCategory = itemView.findViewById(R.id.chipCategory);
             btnUnfavorite = itemView.findViewById(R.id.ivFavorite);
+            cardContainer = itemView.findViewById(R.id.cardContainer);
         }
     }
 }

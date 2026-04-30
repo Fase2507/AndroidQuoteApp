@@ -11,7 +11,16 @@ public class FavoriteQuotes {
     private String author;
     private String category;
     private long timestamp;
+    // FavoriteQuotes.java içine eklenecekler:
+    private boolean isHighlighted = false; // Varsayılan olarak false
 
+    public boolean isHighlighted() {
+        return isHighlighted;
+    }
+
+    public void setHighlighted(boolean highlighted) {
+        isHighlighted = highlighted;
+    }
     public FavoriteQuotes(String quoteText, String author, String category, long timestamp) {
         this.quoteText = quoteText;
         this.author = author;

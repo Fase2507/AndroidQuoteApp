@@ -1,5 +1,6 @@
 package tr.duzce.edu.bm.androidquoteapp.activities;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.RadioGroup;
@@ -7,6 +8,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.os.LocaleListCompat;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
+
 import tr.duzce.edu.bm.androidquoteapp.R;
 
 public class SettingsActivity extends AppCompatActivity {
@@ -14,6 +17,8 @@ public class SettingsActivity extends AppCompatActivity {
     private MaterialButton btnGoBack;
     private RadioGroup rgTheme;
     private SharedPreferences prefs;
+    private MaterialCardView cardProfile;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,7 +29,7 @@ public class SettingsActivity extends AppCompatActivity {
         btnGoBack = findViewById(R.id.btnGoBack);
         rgLanguage = findViewById(R.id.rgLanguage);
         rgTheme = findViewById(R.id.rgTheme);
-
+        cardProfile = findViewById(R.id.cardProfile);
         // Initialize Language Selection
         String currentLang = AppCompatDelegate.getApplicationLocales().toLanguageTags();
         if (currentLang.startsWith("tr")) {
@@ -44,6 +49,10 @@ public class SettingsActivity extends AppCompatActivity {
         }
 
         btnGoBack.setOnClickListener(v -> finish());
+        cardProfile.setOnClickListener(v -> {
+            startActivity(new Intent(SettingsActivity.this, ProfileActivity.class));
+        });
+
 
         rgLanguage.setOnCheckedChangeListener((radioGroup, checkedId) -> {
             String languageTag = "en";
@@ -65,7 +74,7 @@ public class SettingsActivity extends AppCompatActivity {
             } else {
                 mode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
             }
-            
+
             // Save to SharedPreferences
             prefs.edit().putInt("theme_mode", mode).apply();
             // Apply immediately
