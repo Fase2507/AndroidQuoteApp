@@ -39,11 +39,9 @@ public class MainActivity extends AppCompatActivity {
     private MaterialButton btnSettings;
     private CircularProgressIndicator progressBar;
     private FloatingActionButton ivFavorite;
-
     private final GeminiService geminiService = new GeminiService();
     private Quote currentQuote = null;
     private boolean isTranslated = false;
-
     private AppDatabase database;
     private ExecutorService executorService;
     private boolean isFavorited = false;
@@ -52,20 +50,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        textViewQuote = findViewById(R.id.textViewQuote);
-        textViewAuthor = findViewById(R.id.textViewAuthor);
-        textViewCategory = findViewById(R.id.textViewCategory);
-        btnRefresh = findViewById(R.id.btnRefresh);
-        btnTranslate = findViewById(R.id.btnTranslate);
-        btnSettings = findViewById(R.id.btnSettings);
-        btnGoToFavorites = findViewById(R.id.btnGoToFavorites);
-        progressBar = findViewById(R.id.progressBar);
-        ivFavorite = findViewById(R.id.ivFavorite);
-
-        database = AppDatabase.getInstance(this);
-        executorService = Executors.newSingleThreadExecutor();
-
+        initComponents();
         fetchNewQuote();
 
         btnRefresh.setOnClickListener(v -> fetchNewQuote());
@@ -203,5 +188,21 @@ public class MainActivity extends AppCompatActivity {
         if (btnRefresh != null) btnRefresh.setEnabled(!isLoading);
         if (btnTranslate != null) btnTranslate.setEnabled(!isLoading);
         if (btnGoToFavorites != null) btnGoToFavorites.setEnabled(!isLoading);
+    }
+
+    private void initComponents() {
+
+        textViewQuote = findViewById(R.id.textViewQuote);
+        textViewAuthor = findViewById(R.id.textViewAuthor);
+        textViewCategory = findViewById(R.id.textViewCategory);
+        btnRefresh = findViewById(R.id.btnRefresh);
+        btnTranslate = findViewById(R.id.btnTranslate);
+        btnSettings = findViewById(R.id.btnSettings);
+        btnGoToFavorites = findViewById(R.id.btnGoToFavorites);
+        progressBar = findViewById(R.id.progressBar);
+        ivFavorite = findViewById(R.id.ivFavorite);
+
+        database = AppDatabase.getInstance(this);
+        executorService = Executors.newSingleThreadExecutor();
     }
 }

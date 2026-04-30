@@ -3,7 +3,7 @@
     <style name="Base.Theme.AndroidQuoteApp" parent="Theme.Material3.Dark.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">@color/primary_light</item>
-        <item name="colorOnPrimary">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/icons</item>
         <item name="colorPrimaryContainer">@color/primary</item>
         <item name="colorOnPrimaryContainer">@color/primary_light</item>
 
