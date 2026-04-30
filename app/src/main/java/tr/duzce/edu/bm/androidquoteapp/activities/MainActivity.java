@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.widget.ImageViewCompat;
 
@@ -30,6 +31,7 @@ import tr.duzce.edu.bm.androidquoteapp.models.Quote;
 import tr.duzce.edu.bm.androidquoteapp.services.GeminiService;
 
 public class MainActivity extends AppCompatActivity {
+    private ConstraintLayout mainLayout;
     private MaterialTextView textViewQuote;
     private MaterialTextView textViewAuthor;
     private MaterialTextView textViewCategory;
@@ -53,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mainLayout = findViewById(R.id.main);
         textViewQuote = findViewById(R.id.textViewQuote);
         textViewAuthor = findViewById(R.id.textViewAuthor);
         textViewCategory = findViewById(R.id.textViewCategory);
@@ -99,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onSuccess(String result) {
                             textViewCategory.setText(result);
+                            updateBackground(result);
                             showLoading(false);
                             checkFavoriteStatus(currentQuote.getText());
                         }
@@ -106,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onError(Exception e) {
                             textViewCategory.setText("General");
+                            updateBackground("General");
                             showLoading(false);
                             checkFavoriteStatus(currentQuote.getText());
                         }
@@ -122,6 +127,32 @@ public class MainActivity extends AppCompatActivity {
                 showLoading(false);
             }
         });
+    }
+
+    private void updateBackground(String category) {
+        if (category == null) return;
+        
+        String normalizedCategory = category.toLowerCase().trim();
+        int backgroundResId;
+
+        if (normalizedCategory.contains("life")) {
+            backgroundResId = R.drawable.bg_life;
+        } else if (normalizedCategory.contains("love")) {
+            backgroundResId = R.drawable.bg_love;
+        } else if (normalizedCategory.contains("humor") || normalizedCategory.contains("funny")) {
+            backgroundResId = R.drawable.bg_humor;
+        } else if (normalizedCategory.contains("wisdom") || normalizedCategory.contains("philosophy")) {
+            backgroundResId = R.drawable.bg_wisdom;
+        } else if (normalizedCategory.contains("motivation") || normalizedCategory.contains("success") || normalizedCategory.contains("inspiration")) {
+            backgroundResId = R.drawable.bg_motivation;
+        } else {
+            // Default or fallback background
+            backgroundResId = android.R.color.white; // Or any other default drawable
+            mainLayout.setBackgroundResource(backgroundResId);
+            return;
+        }
+
+        mainLayout.setBackgroundResource(backgroundResId);
     }
 
     private void translateQuote() {
