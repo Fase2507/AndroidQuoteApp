@@ -15,7 +15,8 @@ public class QuoteApp extends Application {
         int theme = prefs.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         AppCompatDelegate.setDefaultNightMode(theme);
 
-        // Schedule Daily Notification
-        AlarmUtils.scheduleDailyNotification(this);
+        // Schedule/Update Alarms based on saved preference
+        int mode = prefs.getInt("notification_mode", AlarmUtils.NOTIF_OFF);
+        AlarmUtils.updateAlarms(this, mode);
     }
 }

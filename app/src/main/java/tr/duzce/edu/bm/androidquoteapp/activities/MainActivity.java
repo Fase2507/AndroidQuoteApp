@@ -69,7 +69,8 @@ public class MainActivity extends AppCompatActivity {
         database = AppDatabase.getInstance(this);
         executorService = Executors.newSingleThreadExecutor();
 
-        fetchNewQuote();
+        // Handle the incoming intent (check if launched from notification)
+        handleIntent(getIntent());
 
         btnRefresh.setOnClickListener(v -> fetchNewQuote());
         btnTranslate.setOnClickListener(v -> translateQuote());
@@ -84,6 +85,28 @@ public class MainActivity extends AppCompatActivity {
         ivFavorite.setOnClickListener(v -> handleFavoriteClick());
     }
 
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        handleIntent(intent);
+    }
+
+    private void handleIntent(Intent intent) {
+        if (intent != null && intent.hasExtra("quote_text")) {
+            String text = intent.getStringExtra("quote_text");
+            String author = intent.getStringExtra("quote_author");
+            
+            currentQuote = new Quote();
+            currentQuote.setText(text);
+            currentQuote.setAuthor(author);
+            
+            displayQuote(currentQuote);
+        } else {
+            fetchNewQuote();
+        }
+    }
+
     private void fetchNewQuote() {
         showLoading(true);
         isTranslated = false;
@@ -95,36 +118,43 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call<List<Quote>> call, Response<List<Quote>> response) {
                 if (response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                     currentQuote = response.body().get(0);
-                    textViewQuote.setText(currentQuote.getText());
-                    textViewAuthor.setText("- " + (currentQuote.getAuthor() != null ? currentQuote.getAuthor() : "Unknown"));
-                    
-                    geminiService.categorizeQuote(currentQuote.getText(), new GeminiService.Callback() {
-                        @Override
-                        public void onSuccess(String result) {
-                            textViewCategory.setText(result);
-                            updateBackground(result);
-                            showLoading(false);
-                            checkFavoriteStatus(currentQuote.getText());
-                        }
-
-                        @Override
-                        public void onError(Exception e) {
-                            textViewCategory.setText("General");
-                            updateBackground("General");
-                            showLoading(false);
-                            checkFavoriteStatus(currentQuote.getText());
-                        }
-                    });
+                    displayQuote(currentQuote);
                 } else {
-                    Toast.makeText(MainActivity.this, "Error fetching quote", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Error fetching quote: " + response.code(), Toast.LENGTH_SHORT).show();
                     showLoading(false);
                 }
             }
 
             @Override
             public void onFailure(Call<List<Quote>> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Network error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Connection error: Please check your internet or system time.", Toast.LENGTH_LONG).show();
                 showLoading(false);
+            }
+        });
+    }
+
+    private void displayQuote(Quote quote) {
+        showLoading(true);
+        isTranslated = false;
+        
+        textViewQuote.setText(quote.getText());
+        textViewAuthor.setText("- " + (quote.getAuthor() != null ? quote.getAuthor() : "Unknown"));
+        
+        geminiService.categorizeQuote(quote.getText(), new GeminiService.Callback() {
+            @Override
+            public void onSuccess(String result) {
+                textViewCategory.setText(result);
+                updateBackground(result);
+                showLoading(false);
+                checkFavoriteStatus(quote.getText());
+            }
+
+            @Override
+            public void onError(Exception e) {
+                textViewCategory.setText("General");
+                updateBackground("General");
+                showLoading(false);
+                checkFavoriteStatus(quote.getText());
             }
         });
     }
@@ -146,8 +176,7 @@ public class MainActivity extends AppCompatActivity {
         } else if (normalizedCategory.contains("motivation") || normalizedCategory.contains("success") || normalizedCategory.contains("inspiration")) {
             backgroundResId = R.drawable.bg_motivation;
         } else {
-            // Default or fallback background
-            backgroundResId = android.R.color.white; // Or any other default drawable
+            backgroundResId = android.R.color.white;
             mainLayout.setBackgroundResource(backgroundResId);
             return;
         }
@@ -172,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onError(Exception e) {
-                Toast.makeText(MainActivity.this, "Translation error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Translation error", Toast.LENGTH_SHORT).show();
                 showLoading(false);
                 checkFavoriteStatus(currentQuote.getText());
             }

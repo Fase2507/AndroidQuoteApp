@@ -49,4 +49,11 @@
     <string name="total_favorites">Total Favorited Quotes: %d</string>
     <string name="logout">Logout</string>
     <string name="error">Error</string>
+
+    <!-- Notification Strings -->
+    <string name="notifications">Notifications</string>
+    <string name="notification_off">Off</string>
+    <string name="notification_once">Once a day (12:00 AM)</string>
+    <string name="notification_twice">Twice a day (1:00 PM &amp; 3:00 PM)</string>
+    <string name="test_notification">Send Test Notification Now</string>
 </resources>

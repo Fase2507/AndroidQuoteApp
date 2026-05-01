@@ -1,6 +1,5 @@
 package tr.duzce.edu.bm.androidquoteapp.services;
 
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 
@@ -35,6 +34,11 @@ public class GeminiService {
 
     public void translateQuote(String quote, String targetLanguage, Callback callback) {
         String prompt = "Translate the following quote to " + targetLanguage + ". Only return the translated text: " + quote;
+        generateContent(prompt, callback);
+    }
+
+    public void getDailyQuote(Callback callback) {
+        String prompt = "Provide a short, inspiring daily quote. Return only the quote and its author in the format: \"Quote\" - Author";
         generateContent(prompt, callback);
     }
 
