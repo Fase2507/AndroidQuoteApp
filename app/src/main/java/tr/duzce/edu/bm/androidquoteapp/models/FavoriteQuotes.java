@@ -1,13 +1,24 @@
 package tr.duzce.edu.bm.androidquoteapp.models;
 
 import androidx.room.Entity;
+import androidx.room.ForeignKey;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-@Entity(tableName = "favorite_quotes")
+@Entity(
+    tableName = "favorite_quotes",
+    foreignKeys = @ForeignKey(
+        entity = User.class,
+        parentColumns = "email",
+        childColumns = "userEmail",
+        onDelete = ForeignKey.CASCADE
+    ),
+    indices = {@Index("userEmail")}
+)
 public class FavoriteQuotes {
     @PrimaryKey(autoGenerate = true)
     private int id;
-    private String userEmail; // New field to link favorite to a user
+    private String userEmail;
     private String quoteText;
     private String author;
     private String category;

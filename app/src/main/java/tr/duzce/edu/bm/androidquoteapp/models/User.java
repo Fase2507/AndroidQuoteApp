@@ -1,9 +1,10 @@
 package tr.duzce.edu.bm.androidquoteapp.models;
 
 import androidx.room.Entity;
+import androidx.room.Index;
 import androidx.room.PrimaryKey;
 
-@Entity(tableName = "users")
+@Entity(tableName = "users", indices = {@Index(value = {"email"}, unique = true)})
 public class User {
     @PrimaryKey(autoGenerate = true)
     private int id;

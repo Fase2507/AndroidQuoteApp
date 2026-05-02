@@ -52,7 +52,6 @@ public class LoginActivity extends AppCompatActivity {
         guestBtn = findViewById(R.id.guestBtn);
         rememberMeCheckBox = findViewById(R.id.checkBox);
 
-        // Styling errors
         int redColor = Color.RED;
         emailLayout.setErrorTextColor(ColorStateList.valueOf(redColor));
         passwordLayout.setErrorTextColor(ColorStateList.valueOf(redColor));
@@ -65,10 +64,22 @@ public class LoginActivity extends AppCompatActivity {
         registerBtn.setOnClickListener(v -> {
             startActivity(new Intent(LoginActivity.this, RegisterActivity.class));
         });
+        
         guestBtn.setOnClickListener(v -> {
-            Toast.makeText(this, R.string.guest_warning, Toast.LENGTH_LONG).show();
-            saveCurrentUser("Guest");
-            navigateToMain();
+            // Guest girişi için istisna: Veritabanında bir Guest kaydı oluştur
+            executorService.execute(() -> {
+                User guestUser = db.userDao().getUserByEmail("Guest");
+                if (guestUser == null) {
+                    // Şifresiz ve doğrulanmış bir Guest hesabı oluştur
+                    db.userDao().registerUser(new User("Guest", "GUEST_ACCOUNT", true));
+                }
+                
+                runOnUiThread(() -> {
+                    Toast.makeText(this, R.string.guest_warning, Toast.LENGTH_LONG).show();
+                    saveCurrentUser("Guest");
+                    navigateToMain();
+                });
+            });
         });
     }
 
