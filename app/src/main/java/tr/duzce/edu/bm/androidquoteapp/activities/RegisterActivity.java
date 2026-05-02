@@ -46,18 +46,12 @@ public class RegisterActivity extends AppCompatActivity {
         emailLayout = findViewById(R.id.emailLayout);
         passwordLayout = findViewById(R.id.passwordLayout);
         confirmPasswordLayout = findViewById(R.id.confirmPasswordLayout);
-        
         emailEditText = findViewById(R.id.email);
         passwordEditText = findViewById(R.id.password);
         confirmPasswordEditText = findViewById(R.id.confirmPassword);
-        
         registerBtn = findViewById(R.id.registerBtn);
         loginBtn = findViewById(R.id.loginBtn);
 
-        emailLayout.setErrorIconDrawable(android.R.drawable.stat_notify_error);
-        passwordLayout.setErrorIconDrawable(android.R.drawable.stat_notify_error);
-        confirmPasswordLayout.setErrorIconDrawable(android.R.drawable.stat_notify_error);
-        
         int redColor = Color.RED;
         emailLayout.setErrorTextColor(ColorStateList.valueOf(redColor));
         passwordLayout.setErrorTextColor(ColorStateList.valueOf(redColor));
@@ -76,67 +70,55 @@ public class RegisterActivity extends AppCompatActivity {
 
         resetErrors();
 
-        boolean hasError = false;
-
-        if (email.isEmpty()) {
-            emailLayout.setError(getString(R.string.fill_all_fields));
-            hasError = true;
-        } else if (!email.endsWith("@gmail.com")) {
-            emailLayout.setError(getString(R.string.invalid_email));
-            hasError = true;
+        if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
+            Toast.makeText(this, R.string.fill_all_fields, Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        if (password.isEmpty()) {
-            passwordLayout.setError(getString(R.string.fill_all_fields));
-            hasError = true;
-        } else if (password.length() < 4) {
-            passwordLayout.setError(getString(R.string.invalid_password));
-            hasError = true;
-        }
-
-        if (confirmPassword.isEmpty()) {
-            confirmPasswordLayout.setError(getString(R.string.fill_all_fields));
-            hasError = true;
-        } else if (!password.equals(confirmPassword)) {
+        if (!password.equals(confirmPassword)) {
             confirmPasswordLayout.setError(getString(R.string.passwords_dont_match));
-            hasError = true;
+            return;
         }
-
-        if (hasError) return;
 
         executorService.execute(() -> {
             User existingUser = db.userDao().getUserByEmail(email);
-            if (existingUser != null) {
+            
+            // Eğer kullanıcı zaten varsa ve DOĞRULANMIŞSA hata ver
+            if (existingUser != null && existingUser.isValidated()) {
                 runOnUiThread(() -> emailLayout.setError(getString(R.string.user_already_exists)));
-            } else {
-                String verificationCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-                
-                // Security: Hash the password before saving
-                String hashedPassword = PasswordUtils.hashPassword(password);
-                
+                return;
+            }
+
+            // Yeni kod ve güvenli şifre hash'i hazırla
+            String verificationCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+            String hashedPassword = PasswordUtils.hashPassword(password);
+            long expiryTime = System.currentTimeMillis() + (30 * 60 * 1000); // 30 Dakika
+
+            if (existingUser == null) {
+                // Tamamen yeni kayıt
                 User newUser = new User(email, hashedPassword, false); 
                 newUser.setVerificationToken(verificationCode);
-                
-                // Security: Set token expiry (e.g., 30 minutes from now)
-                long expiryTime = System.currentTimeMillis() + (30 * 60 * 1000);
                 newUser.setTokenExpiryTimestamp(expiryTime);
-
                 db.userDao().registerUser(newUser);
-                
-                try {
-                    EmailService.sendVerificationEmail(email, verificationCode);
-                    runOnUiThread(() -> {
-                        Toast.makeText(this, R.string.registration_successful, Toast.LENGTH_LONG).show();
-                        Intent intent = new Intent(RegisterActivity.this, VerifyActivity.class);
-                        intent.putExtra("email", email);
-                        startActivity(intent);
-                        finish();
-                    });
-                } catch (MessagingException e) {
-                    runOnUiThread(() -> {
-                        Toast.makeText(this, "Error sending email: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                    });
-                }
+            } else {
+                // Kaydı var ama doğrulanmamış; verileri güncelle (Re-Register / Recovery)
+                existingUser.setPassword(hashedPassword);
+                existingUser.setVerificationToken(verificationCode);
+                existingUser.setTokenExpiryTimestamp(expiryTime);
+                db.userDao().updateUser(existingUser);
+            }
+            
+            try {
+                EmailService.sendVerificationEmail(email, verificationCode);
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Verification code sent to your email!", Toast.LENGTH_LONG).show();
+                    Intent intent = new Intent(RegisterActivity.this, VerifyActivity.class);
+                    intent.putExtra("email", email);
+                    startActivity(intent);
+                    finish();
+                });
+            } catch (MessagingException e) {
+                runOnUiThread(() -> Toast.makeText(this, "Email service error", Toast.LENGTH_SHORT).show());
             }
         });
     }
