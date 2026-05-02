@@ -37,10 +37,6 @@ public class GeminiService {
         generateContent(prompt, callback);
     }
 
-    public void getDailyQuote(Callback callback) {
-        String prompt = "Provide a short, inspiring daily quote. Return only the quote and its author in the format: \"Quote\" - Author";
-        generateContent(prompt, callback);
-    }
 
     private void generateContent(String prompt, Callback callback) {
         executor.execute(() -> {

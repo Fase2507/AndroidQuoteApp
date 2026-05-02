@@ -17,7 +17,11 @@ public class EmailService {
     private static final String USERNAME = BuildConfig.MAIL_USERNAME;
     private static final String PASSWORD = BuildConfig.MAIL_PASSWORD;
 
-    public static void sendVerificationEmail(String toEmail, String token) throws MessagingException {
+    /**
+     * Sends a verification email containing a 6-digit code.
+     * Unused deep link logic has been removed.
+     */
+    public static void sendVerificationEmail(String toEmail, String verificationCode) throws MessagingException {
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
@@ -37,11 +41,14 @@ public class EmailService {
         message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
         message.setSubject("Email Verification - Quote App");
         
-        String verificationLink = "quoteapp://verify?email=" + toEmail + "&token=" + token;
-        String emailContent = "<h1>Welcome to Quote App!</h1>" +
-                "<p>Please click the link below to verify your account:</p>" +
-                "<a href=\"" + verificationLink + "\">Verify My Account</a>" +
-                "<p>If the link doesn't work, use this token: <b>" + token + "</b></p>";
+        // Clean HTML content showing only the verification code
+        String emailContent = "<div style=\"font-family: Arial, sans-serif; padding: 20px; border: 1px solid #eee; border-radius: 10px;\">" +
+                "<h1>Welcome to Quote App!</h1>" +
+                "<p>Thank you for registering. To verify your account, please enter the following code in the app:</p>" +
+                "<h2 style=\"color: #2196F3; font-size: 32px; letter-spacing: 5px; background: #f4f4f4; padding: 10px; display: inline-block; border-radius: 5px;\">" + 
+                verificationCode + "</h2>" +
+                "<p>Enter this code in the verification screen to activate your account.</p>" +
+                "</div>";
 
         message.setContent(emailContent, "text/html; charset=utf-8");
 

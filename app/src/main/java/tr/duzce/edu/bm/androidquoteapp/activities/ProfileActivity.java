@@ -46,7 +46,8 @@ public class ProfileActivity extends AppCompatActivity {
         tvEmail.setText(userEmail);
 
         executorService.execute(() -> {
-            List<FavoriteQuotes> favorites = db.quoteDao().getAllFavorites();
+            // Filter favorites by the current user's email
+            List<FavoriteQuotes> favorites = db.quoteDao().getAllFavoritesByUser(userEmail);
             runOnUiThread(() -> {
                 tvFavoritesCount.setText(getString(R.string.total_favorites, favorites.size()));
             });

@@ -110,13 +110,14 @@ public class RegisterActivity extends AppCompatActivity {
             if (existingUser != null) {
                 runOnUiThread(() -> emailLayout.setError(getString(R.string.user_already_exists)));
             } else {
-                String token = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
+                // Generates a 6-character verification code
+                String verificationCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
                 User newUser = new User(email, password, false); 
-                newUser.setVerificationToken(token);
+                newUser.setVerificationToken(verificationCode);
                 db.userDao().registerUser(newUser);
                 
                 try {
-                    EmailService.sendVerificationEmail(email, token);
+                    EmailService.sendVerificationEmail(email, verificationCode);
                     runOnUiThread(() -> {
                         Toast.makeText(this, R.string.registration_successful, Toast.LENGTH_LONG).show();
                         Intent intent = new Intent(RegisterActivity.this, VerifyActivity.class);

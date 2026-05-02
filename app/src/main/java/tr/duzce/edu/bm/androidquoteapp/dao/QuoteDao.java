@@ -16,12 +16,16 @@ public interface QuoteDao {
     @Delete
     void deleteFavorite(FavoriteQuotes quote);
 
-    @Query("DELETE FROM favorite_quotes WHERE quoteText = :quoteText")
-    void deleteByQuoteText(String quoteText);
+    @Query("DELETE FROM favorite_quotes WHERE quoteText = :quoteText AND userEmail = :userEmail")
+    void deleteByQuoteTextAndUser(String quoteText, String userEmail);
 
-    @Query("SELECT EXISTS(SELECT 1 FROM favorite_quotes WHERE quoteText = :quoteText)")
-    boolean isFavoritedByQuote(String quoteText);
+    @Query("SELECT EXISTS(SELECT 1 FROM favorite_quotes WHERE quoteText = :quoteText AND userEmail = :userEmail)")
+    boolean isFavoritedByUser(String quoteText, String userEmail);
 
+    @Query("SELECT * FROM favorite_quotes WHERE userEmail = :userEmail")
+    List<FavoriteQuotes> getAllFavoritesByUser(String userEmail);
+    
+    // Kept for backward compatibility or migration if needed, but should use the filtered ones
     @Query("SELECT * FROM favorite_quotes")
     List<FavoriteQuotes> getAllFavorites();
 }

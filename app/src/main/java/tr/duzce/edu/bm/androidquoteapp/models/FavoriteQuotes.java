@@ -7,21 +7,15 @@ import androidx.room.PrimaryKey;
 public class FavoriteQuotes {
     @PrimaryKey(autoGenerate = true)
     private int id;
+    private String userEmail; // New field to link favorite to a user
     private String quoteText;
     private String author;
     private String category;
     private long timestamp;
-    // FavoriteQuotes.java içine eklenecekler:
-    private boolean isHighlighted = false; // Varsayılan olarak false
+    private boolean isHighlighted = false;
 
-    public boolean isHighlighted() {
-        return isHighlighted;
-    }
-
-    public void setHighlighted(boolean highlighted) {
-        isHighlighted = highlighted;
-    }
-    public FavoriteQuotes(String quoteText, String author, String category, long timestamp) {
+    public FavoriteQuotes(String userEmail, String quoteText, String author, String category, long timestamp) {
+        this.userEmail = userEmail;
         this.quoteText = quoteText;
         this.author = author;
         this.category = category;
@@ -34,6 +28,14 @@ public class FavoriteQuotes {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public String getUserEmail() {
+        return userEmail;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
     }
 
     public String getQuoteText() {
@@ -66,5 +68,13 @@ public class FavoriteQuotes {
 
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
+    }
+
+    public boolean isHighlighted() {
+        return isHighlighted;
+    }
+
+    public void setHighlighted(boolean highlighted) {
+        isHighlighted = highlighted;
     }
 }

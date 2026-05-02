@@ -1,6 +1,7 @@
 package tr.duzce.edu.bm.androidquoteapp.activities;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.view.View;
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
     private AppDatabase database;
     private ExecutorService executorService;
     private boolean isFavorited = false;
+    private String currentUserEmail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +70,10 @@ public class MainActivity extends AppCompatActivity {
 
         database = AppDatabase.getInstance(this);
         executorService = Executors.newSingleThreadExecutor();
+
+        // Get current user email from SharedPreferences
+        SharedPreferences pref = getSharedPreferences("UserSession", MODE_PRIVATE);
+        currentUserEmail = pref.getString("current_user_email", "Guest");
 
         // Handle the incoming intent (check if launched from notification)
         handleIntent(getIntent());
@@ -201,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onError(Exception e) {
-                Toast.makeText(MainActivity.this, "Translation error", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Translation Error", Toast.LENGTH_SHORT).show();
                 showLoading(false);
                 checkFavoriteStatus(currentQuote.getText());
             }
@@ -210,7 +216,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void checkFavoriteStatus(String textToCheck) {
         executorService.execute(() -> {
-            isFavorited = database.quoteDao().isFavoritedByQuote(textToCheck);
+            isFavorited = database.quoteDao().isFavoritedByUser(textToCheck, currentUserEmail);
             runOnUiThread(this::updateHeartIcon);
         });
     }
@@ -225,11 +231,11 @@ public class MainActivity extends AppCompatActivity {
         executorService.execute(() -> {
             boolean isAdded;
             if (isFavorited) {
-                database.quoteDao().deleteByQuoteText(currentText);
+                database.quoteDao().deleteByQuoteTextAndUser(currentText, currentUserEmail);
                 isFavorited = false;
                 isAdded = false;
             } else {
-                FavoriteQuotes newFavorite = new FavoriteQuotes(currentText, currentAuth, currentCat, System.currentTimeMillis());
+                FavoriteQuotes newFavorite = new FavoriteQuotes(currentUserEmail, currentText, currentAuth, currentCat, System.currentTimeMillis());
                 database.quoteDao().insertFavorite(newFavorite);
                 isFavorited = true;
                 isAdded = true;
