@@ -22,6 +22,7 @@ import tr.duzce.edu.bm.androidquoteapp.AppDatabase;
 import tr.duzce.edu.bm.androidquoteapp.R;
 import tr.duzce.edu.bm.androidquoteapp.models.User;
 import tr.duzce.edu.bm.androidquoteapp.services.EmailService;
+import tr.duzce.edu.bm.androidquoteapp.utils.PasswordUtils;
 
 public class RegisterActivity extends AppCompatActivity {
     private TextInputLayout emailLayout, passwordLayout, confirmPasswordLayout;
@@ -53,12 +54,10 @@ public class RegisterActivity extends AppCompatActivity {
         registerBtn = findViewById(R.id.registerBtn);
         loginBtn = findViewById(R.id.loginBtn);
 
-        // Set error icon as exclamation mark
         emailLayout.setErrorIconDrawable(android.R.drawable.stat_notify_error);
         passwordLayout.setErrorIconDrawable(android.R.drawable.stat_notify_error);
         confirmPasswordLayout.setErrorIconDrawable(android.R.drawable.stat_notify_error);
         
-        // Ensure error text is red
         int redColor = Color.RED;
         emailLayout.setErrorTextColor(ColorStateList.valueOf(redColor));
         passwordLayout.setErrorTextColor(ColorStateList.valueOf(redColor));
@@ -110,10 +109,18 @@ public class RegisterActivity extends AppCompatActivity {
             if (existingUser != null) {
                 runOnUiThread(() -> emailLayout.setError(getString(R.string.user_already_exists)));
             } else {
-                // Generates a 6-character verification code
                 String verificationCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
-                User newUser = new User(email, password, false); 
+                
+                // Security: Hash the password before saving
+                String hashedPassword = PasswordUtils.hashPassword(password);
+                
+                User newUser = new User(email, hashedPassword, false); 
                 newUser.setVerificationToken(verificationCode);
+                
+                // Security: Set token expiry (e.g., 30 minutes from now)
+                long expiryTime = System.currentTimeMillis() + (30 * 60 * 1000);
+                newUser.setTokenExpiryTimestamp(expiryTime);
+
                 db.userDao().registerUser(newUser);
                 
                 try {

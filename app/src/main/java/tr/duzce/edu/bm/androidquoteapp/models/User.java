@@ -9,9 +9,10 @@ public class User {
     @PrimaryKey(autoGenerate = true)
     private int id;
     private String email;
-    private String password;
+    private String password; // Will store the hashed password
     private boolean isValidated;
     private String verificationToken;
+    private long tokenExpiryTimestamp; // For security: Token expiration
 
     public User(String email, String password, boolean isValidated) {
         this.email = email;
@@ -57,5 +58,13 @@ public class User {
 
     public void setVerificationToken(String verificationToken) {
         this.verificationToken = verificationToken;
+    }
+
+    public long getTokenExpiryTimestamp() {
+        return tokenExpiryTimestamp;
+    }
+
+    public void setTokenExpiryTimestamp(long tokenExpiryTimestamp) {
+        this.tokenExpiryTimestamp = tokenExpiryTimestamp;
     }
 }

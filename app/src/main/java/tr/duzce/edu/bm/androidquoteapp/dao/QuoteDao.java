@@ -16,6 +16,7 @@ public interface QuoteDao {
     @Delete
     void deleteFavorite(FavoriteQuotes quote);
 
+    // Kullanıcı bazlı metodlar (Yeni standart)
     @Query("DELETE FROM favorite_quotes WHERE quoteText = :quoteText AND userEmail = :userEmail")
     void deleteByQuoteTextAndUser(String quoteText, String userEmail);
 
@@ -24,8 +25,14 @@ public interface QuoteDao {
 
     @Query("SELECT * FROM favorite_quotes WHERE userEmail = :userEmail")
     List<FavoriteQuotes> getAllFavoritesByUser(String userEmail);
-    
-    // Kept for backward compatibility or migration if needed, but should use the filtered ones
+
+    // Geriye dönük uyumluluk ve genel sorgular için
+    @Query("SELECT EXISTS(SELECT 1 FROM favorite_quotes WHERE quoteText = :quoteText)")
+    boolean isFavoritedByQuote(String quoteText);
+
+    @Query("DELETE FROM favorite_quotes WHERE quoteText = :quoteText")
+    void deleteByQuoteText(String quoteText);
+
     @Query("SELECT * FROM favorite_quotes")
     List<FavoriteQuotes> getAllFavorites();
 }

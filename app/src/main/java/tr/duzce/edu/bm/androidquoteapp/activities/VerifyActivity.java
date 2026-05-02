@@ -50,9 +50,17 @@ public class VerifyActivity extends AppCompatActivity {
         executorService.execute(() -> {
             User user = db.userDao().getUserByEmail(email);
             if (user != null && enteredToken.equals(user.getVerificationToken())) {
+                
+                // Security: Check if token has expired
+                if (System.currentTimeMillis() > user.getTokenExpiryTimestamp()) {
+                    runOnUiThread(() -> Toast.makeText(this, "Verification code has expired. Please register again.", Toast.LENGTH_LONG).show());
+                    return;
+                }
+
                 user.setValidated(true);
                 user.setVerificationToken(null); // Clear token after use
                 db.userDao().updateUser(user);
+
                 runOnUiThread(() -> {
                     Toast.makeText(this, "Account Verified! You can now login.", Toast.LENGTH_LONG).show();
                     startActivity(new Intent(VerifyActivity.this, LoginActivity.class));

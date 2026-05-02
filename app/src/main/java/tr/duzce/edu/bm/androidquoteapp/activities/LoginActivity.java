@@ -21,11 +21,12 @@ import java.util.concurrent.Executors;
 import tr.duzce.edu.bm.androidquoteapp.AppDatabase;
 import tr.duzce.edu.bm.androidquoteapp.R;
 import tr.duzce.edu.bm.androidquoteapp.models.User;
+import tr.duzce.edu.bm.androidquoteapp.utils.PasswordUtils;
 
 public class LoginActivity extends AppCompatActivity {
     private TextInputLayout emailLayout, passwordLayout;
     private TextInputEditText emailEditText, passwordEditText;
-    private Button loginBtn, registerBtn, guestBtn;
+    private Button loginBtn, registerBtn, guestBtn, forgotPasswordBtn;
     private CheckBox rememberMeCheckBox;
     private AppDatabase db;
     private final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -50,6 +51,7 @@ public class LoginActivity extends AppCompatActivity {
         loginBtn = findViewById(R.id.loginBtn);
         registerBtn = findViewById(R.id.registerBtn);
         guestBtn = findViewById(R.id.guestBtn);
+        forgotPasswordBtn = findViewById(R.id.forgotPasswordBtn);
         rememberMeCheckBox = findViewById(R.id.checkBox);
 
         int redColor = Color.RED;
@@ -66,11 +68,9 @@ public class LoginActivity extends AppCompatActivity {
         });
         
         guestBtn.setOnClickListener(v -> {
-            // Guest girişi için istisna: Veritabanında bir Guest kaydı oluştur
             executorService.execute(() -> {
                 User guestUser = db.userDao().getUserByEmail("Guest");
                 if (guestUser == null) {
-                    // Şifresiz ve doğrulanmış bir Guest hesabı oluştur
                     db.userDao().registerUser(new User("Guest", "GUEST_ACCOUNT", true));
                 }
                 
@@ -80,6 +80,29 @@ public class LoginActivity extends AppCompatActivity {
                     navigateToMain();
                 });
             });
+        });
+
+        forgotPasswordBtn.setOnClickListener(v -> {
+            String email = emailEditText.getText().toString().trim();
+            if (email.isEmpty()) {
+                emailLayout.setError("Enter your email first");
+            } else {
+                handleForgotPassword(email);
+            }
+        });
+    }
+
+    private void handleForgotPassword(String email) {
+        executorService.execute(() -> {
+            User user = db.userDao().getUserByEmail(email);
+            if (user == null) {
+                runOnUiThread(() -> emailLayout.setError("User not found"));
+            } else {
+                // Navigate to ForgotPasswordActivity (to be created)
+                Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
+                intent.putExtra("email", email);
+                startActivity(intent);
+            }
         });
     }
 
@@ -93,25 +116,22 @@ public class LoginActivity extends AppCompatActivity {
         if (email.isEmpty()) {
             emailLayout.setError(getString(R.string.fill_all_fields));
             hasError = true;
-        } else if (!email.endsWith("@gmail.com")) {
-            emailLayout.setError(getString(R.string.invalid_email));
-            hasError = true;
         }
 
         if (password.isEmpty()) {
             passwordLayout.setError(getString(R.string.fill_all_fields));
-            hasError = true;
-        } else if (password.length() < 4) {
-            passwordLayout.setError(getString(R.string.invalid_password));
             hasError = true;
         }
 
         if (hasError) return;
 
         executorService.execute(() -> {
-            User user = db.userDao().loginUser(email, password);
+            User user = db.userDao().getUserByEmail(email);
+            
+            boolean isValid = user != null && PasswordUtils.verifyPassword(password, user.getPassword());
+
             runOnUiThread(() -> {
-                if (user != null) {
+                if (isValid) {
                     if (!user.isValidated()) {
                         Toast.makeText(this, R.string.verify_email_first, Toast.LENGTH_SHORT).show();
                         return;
@@ -124,6 +144,9 @@ public class LoginActivity extends AppCompatActivity {
                     navigateToMain();
                 } else {
                     passwordLayout.setError(getString(R.string.invalid_credentials));
+                    if (user != null && !user.getPassword().contains(":")) {
+                        passwordLayout.setError("Old account detected. Use Forgot Password to reset.");
+                    }
                 }
             });
         });

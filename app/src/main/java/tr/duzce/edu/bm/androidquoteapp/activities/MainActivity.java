@@ -29,6 +29,7 @@ import tr.duzce.edu.bm.androidquoteapp.R;
 import tr.duzce.edu.bm.androidquoteapp.api.RetrofitClient;
 import tr.duzce.edu.bm.androidquoteapp.models.FavoriteQuotes;
 import tr.duzce.edu.bm.androidquoteapp.models.Quote;
+import tr.duzce.edu.bm.androidquoteapp.models.User;
 import tr.duzce.edu.bm.androidquoteapp.services.GeminiService;
 
 public class MainActivity extends AppCompatActivity {
@@ -48,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean isTranslated = false;
 
     private AppDatabase database;
-    private ExecutorService executorService;
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
     private boolean isFavorited = false;
     private String currentUserEmail;
 
@@ -69,26 +70,30 @@ public class MainActivity extends AppCompatActivity {
         ivFavorite = findViewById(R.id.ivFavorite);
 
         database = AppDatabase.getInstance(this);
-        executorService = Executors.newSingleThreadExecutor();
 
-        // Get current user email from SharedPreferences
         SharedPreferences pref = getSharedPreferences("UserSession", MODE_PRIVATE);
         currentUserEmail = pref.getString("current_user_email", "Guest");
 
-        // Handle the incoming intent (check if launched from notification)
+        // ÖNEMLİ: Foreign Key hatasını önlemek için Guest kaydını garantiye al
+        if ("Guest".equals(currentUserEmail)) {
+            ensureGuestExists();
+        }
+
         handleIntent(getIntent());
 
         btnRefresh.setOnClickListener(v -> fetchNewQuote());
         btnTranslate.setOnClickListener(v -> translateQuote());
-
-        btnGoToFavorites.setOnClickListener(v -> {
-            startActivity(new Intent(MainActivity.this, FavoritesActivity.class));
-        });
-        btnSettings.setOnClickListener(v -> {
-            startActivity(new Intent(MainActivity.this, SettingsActivity.class));
-        });
-
+        btnGoToFavorites.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, FavoritesActivity.class)));
+        btnSettings.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, SettingsActivity.class)));
         ivFavorite.setOnClickListener(v -> handleFavoriteClick());
+    }
+
+    private void ensureGuestExists() {
+        executorService.execute(() -> {
+            if (database.userDao().getUserByEmail("Guest") == null) {
+                database.userDao().registerUser(new User("Guest", "GUEST_ACCOUNT", true));
+            }
+        });
     }
 
     @Override
@@ -102,11 +107,9 @@ public class MainActivity extends AppCompatActivity {
         if (intent != null && intent.hasExtra("quote_text")) {
             String text = intent.getStringExtra("quote_text");
             String author = intent.getStringExtra("quote_author");
-            
             currentQuote = new Quote();
             currentQuote.setText(text);
             currentQuote.setAuthor(author);
-            
             displayQuote(currentQuote);
         } else {
             fetchNewQuote();
@@ -126,14 +129,14 @@ public class MainActivity extends AppCompatActivity {
                     currentQuote = response.body().get(0);
                     displayQuote(currentQuote);
                 } else {
-                    Toast.makeText(MainActivity.this, "Error fetching quote: " + response.code(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Error fetching quote", Toast.LENGTH_SHORT).show();
                     showLoading(false);
                 }
             }
 
             @Override
             public void onFailure(Call<List<Quote>> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Connection error: Please check your internet or system time.", Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, "Connection error", Toast.LENGTH_LONG).show();
                 showLoading(false);
             }
         });
@@ -141,8 +144,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void displayQuote(Quote quote) {
         showLoading(true);
-        isTranslated = false;
-        
         textViewQuote.setText(quote.getText());
         textViewAuthor.setText("- " + (quote.getAuthor() != null ? quote.getAuthor() : "Unknown"));
         
@@ -154,11 +155,9 @@ public class MainActivity extends AppCompatActivity {
                 showLoading(false);
                 checkFavoriteStatus(quote.getText());
             }
-
             @Override
             public void onError(Exception e) {
                 textViewCategory.setText("General");
-                updateBackground("General");
                 showLoading(false);
                 checkFavoriteStatus(quote.getText());
             }
@@ -167,33 +166,17 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateBackground(String category) {
         if (category == null) return;
-        
-        String normalizedCategory = category.toLowerCase().trim();
-        int backgroundResId;
-
-        if (normalizedCategory.contains("life")) {
-            backgroundResId = R.drawable.bg_life;
-        } else if (normalizedCategory.contains("love")) {
-            backgroundResId = R.drawable.bg_love;
-        } else if (normalizedCategory.contains("humor") || normalizedCategory.contains("funny")) {
-            backgroundResId = R.drawable.bg_humor;
-        } else if (normalizedCategory.contains("wisdom") || normalizedCategory.contains("philosophy")) {
-            backgroundResId = R.drawable.bg_wisdom;
-        } else if (normalizedCategory.contains("motivation") || normalizedCategory.contains("success") || normalizedCategory.contains("inspiration")) {
-            backgroundResId = R.drawable.bg_motivation;
-        } else {
-            backgroundResId = android.R.color.white;
-            mainLayout.setBackgroundResource(backgroundResId);
-            return;
-        }
-
-        mainLayout.setBackgroundResource(backgroundResId);
+        String normalized = category.toLowerCase().trim();
+        int resId = R.drawable.bg_wisdom; // Default
+        if (normalized.contains("life")) resId = R.drawable.bg_life;
+        else if (normalized.contains("love")) resId = R.drawable.bg_love;
+        else if (normalized.contains("motivation")) resId = R.drawable.bg_motivation;
+        mainLayout.setBackgroundResource(resId);
     }
 
     private void translateQuote() {
         if (currentQuote == null) return;
         showLoading(true);
-
         String targetLang = isTranslated ? "English" : "Turkish";
         geminiService.translateQuote(currentQuote.getText(), targetLang, new GeminiService.Callback() {
             @Override
@@ -204,12 +187,10 @@ public class MainActivity extends AppCompatActivity {
                 showLoading(false);
                 checkFavoriteStatus(result);
             }
-
             @Override
             public void onError(Exception e) {
-                Toast.makeText(MainActivity.this, "Translation Error", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Translation error", Toast.LENGTH_SHORT).show();
                 showLoading(false);
-                checkFavoriteStatus(currentQuote.getText());
             }
         });
     }
@@ -223,51 +204,32 @@ public class MainActivity extends AppCompatActivity {
 
     private void handleFavoriteClick() {
         if (currentQuote == null || textViewQuote.getText().toString().isEmpty()) return;
-
         String currentText = textViewQuote.getText().toString();
         String currentAuth = textViewAuthor.getText().toString();
         String currentCat = textViewCategory.getText().toString();
 
         executorService.execute(() -> {
-            boolean isAdded;
             if (isFavorited) {
                 database.quoteDao().deleteByQuoteTextAndUser(currentText, currentUserEmail);
                 isFavorited = false;
-                isAdded = false;
             } else {
-                FavoriteQuotes newFavorite = new FavoriteQuotes(currentUserEmail, currentText, currentAuth, currentCat, System.currentTimeMillis());
-                database.quoteDao().insertFavorite(newFavorite);
+                database.quoteDao().insertFavorite(new FavoriteQuotes(currentUserEmail, currentText, currentAuth, currentCat, System.currentTimeMillis()));
                 isFavorited = true;
-                isAdded = true;
             }
-
             runOnUiThread(() -> {
                 updateHeartIcon();
-                if (isAdded) {
-                    Toast.makeText(MainActivity.this, "Added to favorites", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(MainActivity.this, "Removed from favorites", Toast.LENGTH_SHORT).show();
-                }
+                Toast.makeText(this, isFavorited ? "Added to favorites" : "Removed from favorites", Toast.LENGTH_SHORT).show();
             });
         });
     }
 
     private void updateHeartIcon() {
-        if (isFavorited) {
-            ivFavorite.setImageResource(R.drawable.favorite_button_filled_24);
-            int colorRed = ContextCompat.getColor(this, android.R.color.holo_red_light);
-            ImageViewCompat.setImageTintList(ivFavorite, ColorStateList.valueOf(colorRed));
-        } else {
-            ivFavorite.setImageResource(R.drawable.favorite_button_border_24);
-            int colorBlack = ContextCompat.getColor(this, android.R.color.black);
-            ImageViewCompat.setImageTintList(ivFavorite, ColorStateList.valueOf(colorBlack));
-        }
+        ivFavorite.setImageResource(isFavorited ? R.drawable.favorite_button_filled_24 : R.drawable.favorite_button_border_24);
+        int color = isFavorited ? android.R.color.holo_red_light : android.R.color.black;
+        ImageViewCompat.setImageTintList(ivFavorite, ColorStateList.valueOf(ContextCompat.getColor(this, color)));
     }
 
     private void showLoading(boolean isLoading) {
         if (progressBar != null) progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
-        if (btnRefresh != null) btnRefresh.setEnabled(!isLoading);
-        if (btnTranslate != null) btnTranslate.setEnabled(!isLoading);
-        if (btnGoToFavorites != null) btnGoToFavorites.setEnabled(!isLoading);
     }
 }

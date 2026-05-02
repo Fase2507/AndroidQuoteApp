@@ -20,6 +20,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.AndroidQuoteApp">
         <activity
+            android:name=".activities.ForgotPasswordActivity"
+            android:exported="false"
+            android:theme="@style/Theme.AndroidQuoteApp.Login" />
+        <activity
             android:name=".activities.VerifyActivity"
             android:exported="false" />
         <activity
