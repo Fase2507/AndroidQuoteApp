@@ -144,9 +144,7 @@ public class LoginActivity extends AppCompatActivity {
                     navigateToMain();
                 } else {
                     passwordLayout.setError(getString(R.string.invalid_credentials));
-                    if (user != null && !user.getPassword().contains(":")) {
-                        passwordLayout.setError("Old account detected. Use Forgot Password to reset.");
-                    }
+
                 }
             });
         });

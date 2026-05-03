@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Alıntı Uygulaması</string>
+    <string name="author">Yazar</string>
+    <string name="translate">Çevir</string>
+    <string name="refresh">Yenile</string>
+    <string name="quotePlaceHolder">Alıntınız burada görünecek.</string>
+    <string name="category">Kategori</string>
+    <string name="favorites">Favoriler</string>
+    <string name="no_favorites">Henüz favori eklenmedi</string>
+    <string name="go_back">Geri Git</string>
+    <string name="sort_latest">En Yeni</string>
+    <string name="sort_author">Yazar</string>
+    <string name="sort_category">Kategori</string>
+    <string name="settings">Ayarlar</string>
+    <string name="language">Dil</string>
+    <string name="lang_tr">Türkçe</string>
+    <string name="lang_en">İngilizce</string>
+    <string name="theme">Tema</string>
+    <string name="light_theme">Aydınlık Tema</string>
+    <string name="dark_theme">Karanlık Tema</string>
+    <string name="system_theme">Sistem Teması</string>
+    <string name="order_by">Sıralama:</string>
+
+    <!-- Giriş ve Kayıt Metinleri -->
+    <string name="welcome_back">Hoş Geldiniz</string>
+    <string name="create_account">Hesap Oluştur</string>
+    <string name="email">E-posta</string>
+    <string name="password">Şifre</string>
+    <string name="confirm_password">Şifreyi Onayla</string>
+    <string name="remember_me">Beni Hatırla</string>
+    <string name="login">Giriş Yap</string>
+    <string name="register">Kayıt Ol</string>
+    <string name="enter_as_guest">Misafir Olarak Gir</string>
+    <string name="dont_have_account">Hesabınız yok mu? Kayıt Olun</string>
+    <string name="already_have_account">Zaten hesabınız var mı? Giriş Yapın</string>
+    <string name="guest_warning">Misafir girişi yapıldı. Kayıt olmazsanız verileriniz silinebilir!</string>
+    <string name="fill_all_fields">Lütfen tüm alanları doldurun</string>
+    <string name="passwords_dont_match">Şifreler eşleşmiyor</string>
+    <string name="registration_successful">Kayıt Başarılı. Lütfen e-postanızı doğrulayın.</string>
+    <string name="user_already_exists">Bu kullanıcı zaten mevcut</string>
+    <string name="invalid_credentials">Geçersiz giriş bilgileri</string>
+    <string name="verify_email_first">Lütfen önce e-postanızı doğrulayın</string>
+    <string name="invalid_email">E-posta @gmail.com ile bitmelidir</string>
+    <string name="invalid_password">Şifre en az 4 karakter olmalıdır</string>
+
+    <!-- Profil Metinleri -->
+    <string name="profile">Profil</string>
+    <string name="user_info">Kullanıcı Bilgileri</string>
+    <string name="total_favorites">Toplam Favori Alıntılar: %d</string>
+    <string name="logout">Çıkış Yap</string>
+    <string name="error">Hata</string>
+
+    <!-- Bildirim Metinleri -->
+    <string name="notifications">Bildirimler</string>
+    <string name="notification_off">Kapalı</string>
+    <string name="notification_once">Günde bir kez (00:00)</string>
+    <string name="notification_twice">Günde iki kez (13:00 ve 15:00)</string>
+    <string name="test_notification">Test Bildirimi Gönder</string>
+    <string name="testing_notification">Bildirim test ediliyor…</string>
+    <string name="notif_permission_required">Bu özellik için bildirim izni gereklidir.</string>
+
+    <!-- Şifre Sıfırlama -->
+    <string name="reset_password">Şifreyi Sıfırla</string>
+    <string name="back_to_login">Girişe Dön</string>
+    <string name="forgot_password_q">Şifremi Unuttum?</string>
+    <string name="enter_email_first">Lütfen önce e-postanızı girin</string>
+    <string name="user_not_found">Kullanıcı bulunamadı</string>
+</resources>

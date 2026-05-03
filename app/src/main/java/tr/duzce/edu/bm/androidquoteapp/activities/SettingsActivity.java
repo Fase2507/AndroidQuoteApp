@@ -19,6 +19,8 @@ import androidx.core.os.LocaleListCompat;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
+import java.util.Locale;
+
 import tr.duzce.edu.bm.androidquoteapp.R;
 import tr.duzce.edu.bm.androidquoteapp.notifications.NotificationReceiver;
 import tr.duzce.edu.bm.androidquoteapp.utils.AlarmUtils;
@@ -49,12 +51,7 @@ public class SettingsActivity extends AppCompatActivity {
         cardProfile = findViewById(R.id.cardProfile);
 
         // Initialize Language Selection
-        String currentLang = AppCompatDelegate.getApplicationLocales().toLanguageTags();
-        if (currentLang.startsWith("tr")) {
-            rgLanguage.check(R.id.rbTr);
-        } else {
-            rgLanguage.check(R.id.rbEn);
-        }
+        initLanguageUI();
 
         // Initialize Theme Selection from SharedPreferences
         int savedTheme = prefs.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
@@ -89,14 +86,18 @@ public class SettingsActivity extends AppCompatActivity {
 
 
         rgLanguage.setOnCheckedChangeListener((radioGroup, checkedId) -> {
-            String languageTag = "en";
-            if (checkedId == R.id.rbTr) {
-                languageTag = "tr";
-            } else if (checkedId == R.id.rbEn) {
-                languageTag = "en";
+            String languageTag = (checkedId == R.id.rbTr) ? "tr" : "en";
+            
+            // Get current active language to prevent infinite loop
+            String currentLang = AppCompatDelegate.getApplicationLocales().toLanguageTags();
+            if (currentLang.isEmpty()) currentLang = Locale.getDefault().getLanguage();
+            
+            if (!currentLang.startsWith(languageTag)) {
+                LocaleListCompat appLocale = LocaleListCompat.forLanguageTags(languageTag);
+                AppCompatDelegate.setApplicationLocales(appLocale);
+                // Mandatory: recreate activity to apply translation immediately
+                recreate();
             }
-            LocaleListCompat appLocale = LocaleListCompat.forLanguageTags(languageTag);
-            AppCompatDelegate.setApplicationLocales(appLocale);
         });
 
         rgTheme.setOnCheckedChangeListener((radioGroup, checkedId) -> {
@@ -116,11 +117,6 @@ public class SettingsActivity extends AppCompatActivity {
         });
 
         rgNotifications.setOnCheckedChangeListener((radioGroup, checkedId) -> {
-            if (checkedId != R.id.rbNotifOff && !checkAndRequestNotificationPermission()) {
-                // If they turn it on but no permission, we might want to reset the UI or just let them know
-                // For now, let's just proceed but ensure permission is asked
-            }
-
             int mode;
             if (checkedId == R.id.rbNotifOnce) {
                 mode = AlarmUtils.NOTIF_ONCE;
@@ -137,6 +133,19 @@ public class SettingsActivity extends AppCompatActivity {
         });
     }
 
+    private void initLanguageUI() {
+        String currentLang = AppCompatDelegate.getApplicationLocales().toLanguageTags();
+        if (currentLang.isEmpty()) {
+            currentLang = Locale.getDefault().getLanguage();
+        }
+
+        if (currentLang.startsWith("tr")) {
+            rgLanguage.check(R.id.rbTr);
+        } else {
+            rgLanguage.check(R.id.rbEn);
+        }
+    }
+
     private boolean checkAndRequestNotificationPermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -150,7 +159,7 @@ public class SettingsActivity extends AppCompatActivity {
     private void sendTestNotification() {
         Intent intent = new Intent(this, NotificationReceiver.class);
         sendBroadcast(intent);
-        Toast.makeText(this, "Testing notification...", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.testing_notification, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -160,7 +169,7 @@ public class SettingsActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 sendTestNotification();
             } else {
-                Toast.makeText(this, "Notification permission is required for this feature.", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, R.string.notif_permission_required, Toast.LENGTH_LONG).show();
             }
         }
     }

@@ -70,6 +70,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         resetErrors();
 
+
         if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(this, R.string.fill_all_fields, Toast.LENGTH_SHORT).show();
             return;
@@ -77,6 +78,16 @@ public class RegisterActivity extends AppCompatActivity {
 
         if (!password.equals(confirmPassword)) {
             confirmPasswordLayout.setError(getString(R.string.passwords_dont_match));
+            return;
+        }
+
+        if (!email.endsWith("@gmail.com")) {
+            emailLayout.setError(getString(R.string.invalid_email));
+            return;
+        }
+
+        if (password.length() < 4) {
+            passwordLayout.setError(getString(R.string.invalid_password));
             return;
         }
 
