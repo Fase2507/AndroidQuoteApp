@@ -53,11 +53,13 @@
     <string name="error">Error</string>
     <string name="notifications">Notifications</string>
     <string name="notification_off">Off</string>
-    <string name="notification_once">Once a day (12:00 AM)</string>
-    <string name="notification_twice">Twice a day (1:00 PM &amp; 3:00 PM)</string>
+    <string name="notification_once">Once a day (00:00)</string>
+    <string name="notification_twice">Twice a day (13:00 &amp; 15:00)</string>
     <string name="test_notification">Send Test Notification Now</string>
-    <string name="testing_notification">Testing notification…</string>
+    <string name="testing_notification">Testing notification...</string>
     <string name="notif_permission_required">Notification permission is required for this feature.</string>
+    <string name="fetching_quote">Fetching Daily Quote...</string>
+    <string name="default_quote_msg">Check out today\'s inspiring quote!</string>
 
     <!-- Verification & Password Reset -->
     <string name="verification_code_sent">Verification code sent!</string>
@@ -74,4 +76,12 @@
     <string name="password_updated">Password updated successfully!</string>
     <string name="password_too_short">Password too short</string>
     <string name="code_expired_try_again">Code expired. Try again.</string>
+
+    <!-- UI feedback -->
+    <string name="error_fetching">Error fetching quote</string>
+    <string name="connection_error">Connection error: Please check your internet or system time.</string>
+    <string name="translation_error">Translation error</string>
+    <string name="added_to_favorites">Added to favorites</string>
+    <string name="removed_from_favorites">Removed from favorites</string>
+    <string name="general_cat">General</string>
 </resources>

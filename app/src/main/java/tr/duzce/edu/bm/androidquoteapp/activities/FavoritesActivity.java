@@ -45,7 +45,6 @@ public class FavoritesActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_favorites);
 
-        // Kullanıcı bilgisini al
         SharedPreferences pref = getSharedPreferences("UserSession", MODE_PRIVATE);
         currentUserEmail = pref.getString("current_user_email", "Guest");
 
@@ -61,13 +60,9 @@ public class FavoritesActivity extends AppCompatActivity {
         btnGoBack.setOnClickListener(v -> finish());
 
         orderByRadioGroup.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId == R.id.SortByLatest) {
-                orderByLatest();
-            } else if (checkedId == R.id.SortByAuthor) {
-                orderByAuthor();
-            } else if (checkedId == R.id.SortByCategory) {
-                orderByCategory();
-            }
+            if (checkedId == R.id.SortByLatest) orderByLatest();
+            else if (checkedId == R.id.SortByAuthor) orderByAuthor();
+            else if (checkedId == R.id.SortByCategory) orderByCategory();
         });
 
         setupSwipeActions();
@@ -77,19 +72,15 @@ public class FavoritesActivity extends AppCompatActivity {
     private void loadFavorites() {
         progressBar.setVisibility(View.VISIBLE);
         executorService.execute(() -> {
-            // SADECE aktif kullanıcıya ait favorileri getir
             favoriteList = database.quoteDao().getAllFavoritesByUser(currentUserEmail);
             runOnUiThread(() -> {
                 progressBar.setVisibility(View.GONE);
-                if (favoriteList != null) {
-                    orderByLatest();
-                }
+                if (favoriteList != null) orderByLatest();
                 updateUI();
             });
         });
     }
 
-    // ... (unfavoriteQuote metodunda da kullanıcı bazlı kontrol için güncelleme)
     private void unfavoriteQuote(FavoriteQuotes quote, int position) {
         executorService.execute(() -> {
             database.quoteDao().deleteFavorite(quote);
@@ -98,6 +89,7 @@ public class FavoritesActivity extends AppCompatActivity {
                     favoriteList.remove(position);
                     if (adapter != null) {
                         adapter.notifyItemRemoved(position);
+                        adapter.notifyItemRangeChanged(position, favoriteList.size());
                     }
                     if (favoriteList.isEmpty()) {
                         tvEmptyState.setVisibility(View.VISIBLE);
@@ -108,7 +100,6 @@ public class FavoritesActivity extends AppCompatActivity {
         });
     }
     
-    // UI güncelleme ve swipe işlemleri aynı kalabilir ancak veriler artık kullanıcıya özel.
     private void updateUI() {
         if (favoriteList == null || favoriteList.isEmpty()) {
             tvEmptyState.setVisibility(View.VISIBLE);
@@ -127,6 +118,8 @@ public class FavoritesActivity extends AppCompatActivity {
 
     private void setupSwipeActions() {
         ItemTouchHelper.SimpleCallback swipeCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            private final Paint paint = new Paint();
+
             @Override
             public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) { return false; }
 
@@ -138,14 +131,53 @@ public class FavoritesActivity extends AppCompatActivity {
                 if (direction == ItemTouchHelper.LEFT) {
                     unfavoriteQuote(quote, position);
                 } else {
-                    adapter.toggleHighlight(position);
+                    // Toggle highlight in memory and database
+                    boolean newStatus = !quote.isHighlighted();
+                    quote.setHighlighted(newStatus);
+                    executorService.execute(() -> database.quoteDao().insertFavorite(quote));
                     adapter.notifyItemChanged(position);
                 }
             }
 
             @Override
             public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-                // ... (Swipe çizim kodları aynı kalabilir)
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    View itemView = viewHolder.itemView;
+                    float height = (float) itemView.getBottom() - (float) itemView.getTop();
+                    float width = height / 3;
+
+                    if (dX > 0) { // Sağa Kaydırma (Yıldızla)
+                        paint.setColor(Color.parseColor("#FFD700")); // Altın
+                        RectF background = new RectF((float) itemView.getLeft(), (float) itemView.getTop(), dX, (float) itemView.getBottom());
+                        c.drawRect(background, paint);
+
+                        Drawable icon = ContextCompat.getDrawable(FavoritesActivity.this, R.drawable.highlighted_star);
+                        if (icon != null) {
+                            int iconMargin = (int) (height - width) / 2;
+                            int iconTop = itemView.getTop() + iconMargin;
+                            int iconBottom = itemView.getBottom() - iconMargin;
+                            int iconLeft = itemView.getLeft() + iconMargin;
+                            int iconRight = iconLeft + (int) width;
+                            icon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
+                            icon.draw(c);
+                        }
+                    } else if (dX < 0) { // Sola Kaydırma (Sil)
+                        paint.setColor(Color.parseColor("#F44336")); // Kırmızı
+                        RectF background = new RectF((float) itemView.getRight() + dX, (float) itemView.getTop(), (float) itemView.getRight(), (float) itemView.getBottom());
+                        c.drawRect(background, paint);
+
+                        Drawable icon = ContextCompat.getDrawable(FavoritesActivity.this, R.drawable.remove_icon);
+                        if (icon != null) {
+                            int iconMargin = (int) (height - width) / 2;
+                            int iconTop = itemView.getTop() + iconMargin;
+                            int iconBottom = itemView.getBottom() - iconMargin;
+                            int iconRight = itemView.getRight() - iconMargin;
+                            int iconLeft = iconRight - (int) width;
+                            icon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
+                            icon.draw(c);
+                        }
+                    }
+                }
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
         };
@@ -154,14 +186,22 @@ public class FavoritesActivity extends AppCompatActivity {
 
     private void orderByAuthor() {
         if (favoriteList != null) {
-            Collections.sort(favoriteList, (q1, q2) -> q1.getAuthor().compareToIgnoreCase(q2.getAuthor()));
+            Collections.sort(favoriteList, (q1, q2) -> {
+                String a1 = q1.getAuthor() != null ? q1.getAuthor() : "";
+                String a2 = q2.getAuthor() != null ? q2.getAuthor() : "";
+                return a1.compareToIgnoreCase(a2);
+            });
             if (adapter != null) adapter.notifyDataSetChanged();
         }
     }
 
     private void orderByCategory() {
         if (favoriteList != null) {
-            Collections.sort(favoriteList, (q1, q2) -> q1.getCategory().compareToIgnoreCase(q2.getCategory()));
+            Collections.sort(favoriteList, (q1, q2) -> {
+                String c1 = q1.getCategory() != null ? q1.getCategory() : "";
+                String c2 = q2.getCategory() != null ? q2.getCategory() : "";
+                return c1.compareToIgnoreCase(c2);
+            });
             if (adapter != null) adapter.notifyDataSetChanged();
         }
     }
@@ -176,6 +216,6 @@ public class FavoritesActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        executorService.shutdown();
+        if (executorService != null) executorService.shutdown();
     }
 }

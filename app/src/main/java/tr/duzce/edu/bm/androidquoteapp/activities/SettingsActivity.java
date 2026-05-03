@@ -19,11 +19,11 @@ import androidx.core.os.LocaleListCompat;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 
-import java.util.Locale;
-
 import tr.duzce.edu.bm.androidquoteapp.R;
 import tr.duzce.edu.bm.androidquoteapp.notifications.NotificationReceiver;
 import tr.duzce.edu.bm.androidquoteapp.utils.AlarmUtils;
+
+import java.util.Locale;
 
 public class SettingsActivity extends AppCompatActivity {
     private static final int PERMISSION_REQUEST_CODE = 100;
@@ -88,7 +88,7 @@ public class SettingsActivity extends AppCompatActivity {
         rgLanguage.setOnCheckedChangeListener((radioGroup, checkedId) -> {
             String languageTag = (checkedId == R.id.rbTr) ? "tr" : "en";
             
-            // Get current active language to prevent infinite loop
+            // Check current active language to prevent infinite recreation loop
             String currentLang = AppCompatDelegate.getApplicationLocales().toLanguageTags();
             if (currentLang.isEmpty()) currentLang = Locale.getDefault().getLanguage();
             
@@ -110,9 +110,7 @@ public class SettingsActivity extends AppCompatActivity {
                 mode = AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM;
             }
 
-            // Save to SharedPreferences
             prefs.edit().putInt("theme_mode", mode).apply();
-            // Apply immediately
             AppCompatDelegate.setDefaultNightMode(mode);
         });
 
@@ -126,9 +124,7 @@ public class SettingsActivity extends AppCompatActivity {
                 mode = AlarmUtils.NOTIF_OFF;
             }
 
-            // Save to SharedPreferences
             prefs.edit().putInt("notification_mode", mode).apply();
-            // Update Alarms
             AlarmUtils.updateAlarms(this, mode);
         });
     }
