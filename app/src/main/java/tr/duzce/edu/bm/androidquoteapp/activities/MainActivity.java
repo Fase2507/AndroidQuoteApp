@@ -74,10 +74,12 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences pref = getSharedPreferences("UserSession", MODE_PRIVATE);
         currentUserEmail = pref.getString("current_user_email", "Guest");
 
-        // ÖNEMLİ: Foreign Key hatasını önlemek için Guest kaydını garantiye al
         if ("Guest".equals(currentUserEmail)) {
             ensureGuestExists();
         }
+
+        // İlk açılışta varsayılan arka planı ayarla
+        updateBackground(null);
 
         handleIntent(getIntent());
 
@@ -158,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onError(Exception e) {
                 textViewCategory.setText("General");
+                updateBackground("General");
                 showLoading(false);
                 checkFavoriteStatus(quote.getText());
             }
@@ -165,12 +168,21 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateBackground(String category) {
-        if (category == null) return;
-        String normalized = category.toLowerCase().trim();
-        int resId = R.drawable.bg_wisdom; // Default
-        if (normalized.contains("life")) resId = R.drawable.bg_life;
-        else if (normalized.contains("love")) resId = R.drawable.bg_love;
-        else if (normalized.contains("motivation")) resId = R.drawable.bg_motivation;
+        // Kategori null olsa bile metodun çalışmaya devam etmesini sağla
+        String normalized = (category != null) ? category.toLowerCase().trim() : "";
+        int resId = R.drawable.bg_wisdom; // Varsayılan (Wisdom)
+
+        if (normalized.contains("life")) {
+            resId = R.drawable.bg_life;
+        } else if (normalized.contains("love")) {
+            resId = R.drawable.bg_love;
+        } else if (normalized.contains("motivation")) {
+            resId = R.drawable.bg_motivation;
+        } else if (normalized.contains("humor")) {
+            resId = R.drawable.bg_humor;
+        }
+
+        // Arka planı uygula
         mainLayout.setBackgroundResource(resId);
     }
 

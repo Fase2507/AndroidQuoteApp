@@ -3,6 +3,7 @@ package tr.duzce.edu.bm.androidquoteapp;
 import android.app.Application;
 import android.content.SharedPreferences;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.os.LocaleListCompat;
 import tr.duzce.edu.bm.androidquoteapp.utils.AlarmUtils;
 
 public class QuoteApp extends Application {
@@ -10,8 +11,16 @@ public class QuoteApp extends Application {
     public void onCreate() {
         super.onCreate();
         
-        // Initialize Theme from SharedPreferences
         SharedPreferences prefs = getSharedPreferences("settings", MODE_PRIVATE);
+
+        // Initialize Language from SharedPreferences
+        String language = prefs.getString("language", "");
+        if (!language.isEmpty()) {
+            LocaleListCompat appLocale = LocaleListCompat.forLanguageTags(language);
+            AppCompatDelegate.setApplicationLocales(appLocale);
+        }
+
+        // Initialize Theme from SharedPreferences
         int theme = prefs.getInt("theme_mode", AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
         AppCompatDelegate.setDefaultNightMode(theme);
 

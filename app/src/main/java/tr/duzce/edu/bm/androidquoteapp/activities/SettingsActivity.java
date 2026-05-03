@@ -88,6 +88,9 @@ public class SettingsActivity extends AppCompatActivity {
         rgLanguage.setOnCheckedChangeListener((radioGroup, checkedId) -> {
             String languageTag = (checkedId == R.id.rbTr) ? "tr" : "en";
             
+            // Save to SharedPreferences as requested
+            prefs.edit().putString("language", languageTag).apply();
+
             // Check current active language to prevent infinite recreation loop
             String currentLang = AppCompatDelegate.getApplicationLocales().toLanguageTags();
             if (currentLang.isEmpty()) currentLang = Locale.getDefault().getLanguage();
@@ -130,6 +133,18 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     private void initLanguageUI() {
+        // First check SharedPreferences
+        String savedLang = prefs.getString("language", "");
+        if (!savedLang.isEmpty()) {
+            if (savedLang.equals("tr")) {
+                rgLanguage.check(R.id.rbTr);
+            } else {
+                rgLanguage.check(R.id.rbEn);
+            }
+            return;
+        }
+
+        // Fallback to current app locales or system default
         String currentLang = AppCompatDelegate.getApplicationLocales().toLanguageTags();
         if (currentLang.isEmpty()) {
             currentLang = Locale.getDefault().getLanguage();
