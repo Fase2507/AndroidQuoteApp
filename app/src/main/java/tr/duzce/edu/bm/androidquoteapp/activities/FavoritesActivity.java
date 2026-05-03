@@ -124,31 +124,76 @@ public class FavoritesActivity extends AppCompatActivity {
             }
         }
     }
-
-    private void setupSwipeActions() {
+ private void setupSwipeActions() {
         ItemTouchHelper.SimpleCallback swipeCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            
+            private final Paint paint = new Paint();
+
             @Override
-            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) { return false; }
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
 
             @Override
             public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
                 int position = viewHolder.getAdapterPosition();
-                if (favoriteList == null || position < 0) return;
+                if (favoriteList == null || position < 0 || position >= favoriteList.size()) return;
+
                 FavoriteQuotes quote = favoriteList.get(position);
+
                 if (direction == ItemTouchHelper.LEFT) {
                     unfavoriteQuote(quote, position);
-                } else {
-                    adapter.toggleHighlight(position);
+                } else if (direction == ItemTouchHelper.RIGHT) {
+                    if (adapter != null) {
+                        adapter.toggleHighlight(position);
+                    }
                     adapter.notifyItemChanged(position);
                 }
             }
 
             @Override
             public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, float dX, float dY, int actionState, boolean isCurrentlyActive) {
-                // ... (Swipe çizim kodları aynı kalabilir)
+                if (actionState == ItemTouchHelper.ACTION_STATE_SWIPE) {
+                    View itemView = viewHolder.itemView;
+                    float height = (float) itemView.getBottom() - (float) itemView.getTop();
+                    float width = height / 3;
+
+                    if (dX > 0) { // Swiping Right (Highlight)
+                        paint.setColor(Color.parseColor("#FBC02D")); // Gold color
+                        RectF background = new RectF((float) itemView.getLeft(), (float) itemView.getTop(), dX, (float) itemView.getBottom());
+                        c.drawRect(background, paint);
+                        
+                        Drawable icon = ContextCompat.getDrawable(FavoritesActivity.this, R.drawable.highlighted_star);
+                        if (icon != null) {
+                            int iconMargin = (int) (height - width) / 2;
+                            int iconTop = itemView.getTop() + (int) (height - width) / 2;
+                            int iconBottom = iconTop + (int) width;
+                            int iconLeft = itemView.getLeft() + iconMargin;
+                            int iconRight = iconLeft + (int) width;
+                            icon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
+                            icon.draw(c);
+                        }
+                    } else if (dX < 0) { // Swiping Left (Remove)
+                        paint.setColor(Color.parseColor("#E57373")); // Red color
+                        RectF background = new RectF((float) itemView.getRight() + dX, (float) itemView.getTop(), (float) itemView.getRight(), (float) itemView.getBottom());
+                        c.drawRect(background, paint);
+                        
+                        Drawable icon = ContextCompat.getDrawable(FavoritesActivity.this, R.drawable.remove_icon);
+                        if (icon != null) {
+                            int iconMargin = (int) (height - width) / 2;
+                            int iconTop = itemView.getTop() + (int) (height - width) / 2;
+                            int iconBottom = iconTop + (int) width;
+                            int iconLeft = itemView.getRight() - iconMargin - (int) width;
+                            int iconRight = itemView.getRight() - iconMargin;
+                            icon.setBounds(iconLeft, iconTop, iconRight, iconBottom);
+                            icon.draw(c);
+                        }
+                    }
+                }
                 super.onChildDraw(c, recyclerView, viewHolder, dX, dY, actionState, isCurrentlyActive);
             }
         };
+
         new ItemTouchHelper(swipeCallback).attachToRecyclerView(rvFavorites);
     }
 
