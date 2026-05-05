@@ -13,6 +13,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.widget.ImageViewCompat;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.chip.Chip;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.progressindicator.CircularProgressIndicator;
 import com.google.android.material.textview.MaterialTextView;
@@ -36,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private ConstraintLayout mainLayout;
     private MaterialTextView textViewQuote;
     private MaterialTextView textViewAuthor;
-    private MaterialTextView textViewCategory;
+    private Chip textViewCategory;
     private MaterialButton btnRefresh;
     private MaterialButton btnTranslate;
     private MaterialButton btnGoToFavorites;

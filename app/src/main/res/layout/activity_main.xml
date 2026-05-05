@@ -37,16 +37,20 @@
             app:icon="@drawable/baseline_settings_24"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintEnd_toEndOf="parent" />
-
-        <com.google.android.material.textview.MaterialTextView
+        <com.google.android.material.chip.Chip
             android:id="@+id/textViewCategory"
+            style="@style/Widget.Material3.Chip.Suggestion"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
+            android:layout_marginBottom="12dp"
             android:text="@string/category"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
+            android:textAppearance="?attr/textAppearanceTitleMedium"
             android:textColor="@color/white"
-            android:textStyle="italic"
+            android:textStyle="bold"
+            android:textSize="20sp"
+            app:chipBackgroundColor="#B31A1A1A"
+            app:chipStrokeColor="#80FFFFFF"
+            app:chipStrokeWidth="1dp"
             app:layout_constraintBottom_toTopOf="@id/textViewQuote"
             app:layout_constraintEnd_toEndOf="@id/textViewQuote" />
 
@@ -90,7 +94,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTranslate"
-                style="@style/Widget.Material3.Button.OutlinedButton"
+                style="@style/Widget.Material3.Button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/translate" />
@@ -104,8 +108,8 @@
             android:layout_marginBottom="92dp"
             android:text="@string/author"
             android:textAppearance="?attr/textAppearanceTitleMedium"
-            android:textColor="#E0E0E0"
-            android:textSize="14sp"
+            android:textColor="@color/white"
+            android:textSize="24sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent" />
 

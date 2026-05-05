@@ -19,4 +19,7 @@ public interface UserDao {
     
     @Query("UPDATE users SET password = :newHashedPassword WHERE email = :email")
     void updatePassword(String email, String newHashedPassword);
+
+    @Query("DELETE FROM users WHERE email = :email")
+    void deleteUserByEmail(String email);
 }

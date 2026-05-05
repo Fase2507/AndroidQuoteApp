@@ -1,5 +1,6 @@
 package tr.duzce.edu.bm.androidquoteapp.models;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.Index;
 import androidx.room.PrimaryKey;
@@ -8,7 +9,9 @@ import androidx.room.PrimaryKey;
 public class User {
     @PrimaryKey(autoGenerate = true)
     private int id;
+    @NonNull
     private String email;
+    @NonNull
     private String password; // Will store the hashed password
     private boolean isValidated;
     private String verificationToken;

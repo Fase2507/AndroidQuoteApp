@@ -84,4 +84,7 @@
     <string name="added_to_favorites">Added to favorites</string>
     <string name="removed_from_favorites">Removed from favorites</string>
     <string name="general_cat">General</string>
+    <string name="author_name">Author Name</string>
+    <string name="unfavorite">Unfavorite</string>
+    <string name="quote_text_goes_here">Quote text goes here</string>
 </resources>

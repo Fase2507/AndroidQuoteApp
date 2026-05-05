@@ -37,6 +37,9 @@
     <color name="highlight_gold_start">#FFF9C4</color>
     <color name="highlight_gold_end">#FFF176</color>
     <color name="highlight_gold_stroke">#F9A825</color>
+    <color name="highlight_text">#1A1A1A</color>
+
+
 
     <!-- Brand Constants & Compatibility -->
     <color name="white">#FFFFFF</color>

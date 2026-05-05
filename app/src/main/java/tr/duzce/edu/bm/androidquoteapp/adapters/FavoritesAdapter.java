@@ -6,6 +6,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 import tr.duzce.edu.bm.androidquoteapp.R;
@@ -48,8 +49,12 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.View
 
         if (quote.isHighlighted()) {
             holder.cardContainer.setBackgroundResource(R.drawable.bg_highlighted_quote);
+            int textColor = ContextCompat.getColor(holder.itemView.getContext(), R.color.highlight_text);
+            holder.tvQuote.setTextColor(textColor);
+            holder.tvAuthor.setTextColor(textColor);
         } else {
             holder.cardContainer.setBackgroundResource(R.drawable.bg_normal_quote);
+
         }
 
         holder.btnUnfavorite.setOnClickListener(v -> {
