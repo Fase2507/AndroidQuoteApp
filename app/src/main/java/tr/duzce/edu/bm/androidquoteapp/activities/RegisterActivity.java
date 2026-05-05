@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
@@ -40,6 +42,7 @@ public class RegisterActivity extends AppCompatActivity {
 
         db = AppDatabase.getInstance(this);
         initComponents();
+        setupTextWatchers();
         setupClickListeners();
     }
 
@@ -59,6 +62,59 @@ public class RegisterActivity extends AppCompatActivity {
         confirmPasswordLayout.setErrorTextColor(ColorStateList.valueOf(redColor));
     }
 
+    private void setupTextWatchers() {
+        emailEditText.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String email = s.toString().trim();
+                if (email.isEmpty()) {
+                    emailLayout.setError(null);
+                } else if (!email.endsWith("@gmail.com")) {
+                    emailLayout.setError(getString(R.string.invalid_email));
+                } else {
+                    emailLayout.setError(null);
+                }
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+
+        passwordEditText.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String pass = s.toString().trim();
+                if (pass.isEmpty()) {
+                    passwordLayout.setError(null);
+                } else if (pass.length() < 4) {
+                    passwordLayout.setError(getString(R.string.invalid_password));
+                } else {
+                    passwordLayout.setError(null);
+                }
+                validateConfirmPassword();
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+
+        confirmPasswordEditText.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                validateConfirmPassword();
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    private void validateConfirmPassword() {
+        String pass = passwordEditText.getText().toString().trim();
+        String confirm = confirmPasswordEditText.getText().toString().trim();
+        if (confirm.isEmpty()) {
+            confirmPasswordLayout.setError(null);
+        } else if (!confirm.equals(pass)) {
+            confirmPasswordLayout.setError(getString(R.string.passwords_dont_match));
+        } else {
+            confirmPasswordLayout.setError(null);
+        }
+    }
+
     private void setupClickListeners() {
         registerBtn.setOnClickListener(v -> register());
         loginBtn.setOnClickListener(v -> finish());
@@ -69,26 +125,13 @@ public class RegisterActivity extends AppCompatActivity {
         String password = passwordEditText.getText().toString().trim();
         String confirmPassword = confirmPasswordEditText.getText().toString().trim();
 
-        resetErrors();
-
-
         if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(this, R.string.fill_all_fields, Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (!password.equals(confirmPassword)) {
-            confirmPasswordLayout.setError(getString(R.string.passwords_dont_match));
-            return;
-        }
-
-        if (!email.endsWith("@gmail.com")) {
-            emailLayout.setError(getString(R.string.invalid_email));
-            return;
-        }
-
-        if (password.length() < 4) {
-            passwordLayout.setError(getString(R.string.invalid_password));
+        if (emailLayout.getError() != null || passwordLayout.getError() != null || confirmPasswordLayout.getError() != null) {
+            Toast.makeText(this, "Please fix errors", Toast.LENGTH_SHORT).show();
             return;
         }
 

@@ -5,6 +5,8 @@ import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.Toast;
@@ -39,6 +41,7 @@ public class LoginActivity extends AppCompatActivity {
 
         db = AppDatabase.getInstance(this);
         initComponents();
+        setupTextWatchers();
         checkRememberMe();
         setupClickListeners();
     }
@@ -59,6 +62,31 @@ public class LoginActivity extends AppCompatActivity {
         passwordLayout.setErrorTextColor(ColorStateList.valueOf(redColor));
         emailLayout.setErrorIconDrawable(android.R.drawable.stat_notify_error);
         passwordLayout.setErrorIconDrawable(android.R.drawable.stat_notify_error);
+    }
+
+    private void setupTextWatchers() {
+        emailEditText.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String email = s.toString().trim();
+                if (!email.isEmpty() && !email.endsWith("@gmail.com")) {
+                    emailLayout.setError(getString(R.string.invalid_email));
+                } else {
+                    emailLayout.setError(null);
+                }
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
+
+        passwordEditText.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.toString().trim().length() > 0) {
+                    passwordLayout.setError(null);
+                }
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
     }
 
     private void setupClickListeners() {
@@ -98,7 +126,6 @@ public class LoginActivity extends AppCompatActivity {
             if (user == null) {
                 runOnUiThread(() -> emailLayout.setError("User not found"));
             } else {
-                // Navigate to ForgotPasswordActivity (to be created)
                 Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
                 intent.putExtra("email", email);
                 startActivity(intent);
@@ -120,6 +147,10 @@ public class LoginActivity extends AppCompatActivity {
 
         if (password.isEmpty()) {
             passwordLayout.setError(getString(R.string.fill_all_fields));
+            hasError = true;
+        }
+        
+        if (emailLayout.getError() != null || passwordLayout.getError() != null) {
             hasError = true;
         }
 
@@ -144,7 +175,6 @@ public class LoginActivity extends AppCompatActivity {
                     navigateToMain();
                 } else {
                     passwordLayout.setError(getString(R.string.invalid_credentials));
-
                 }
             });
         });
