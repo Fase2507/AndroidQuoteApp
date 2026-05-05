@@ -13,7 +13,7 @@ import tr.duzce.edu.bm.androidquoteapp.models.FavoriteQuotes;
 
 public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.ViewHolder> {
 
-    private final List<FavoriteQuotes> favoriteQuotes;
+    private List<FavoriteQuotes> favoriteQuotes;
     private final OnItemClickListener listener;
 
     public interface OnItemClickListener {
@@ -23,6 +23,12 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.View
     public FavoritesAdapter(List<FavoriteQuotes> favoriteQuotes, OnItemClickListener listener) {
         this.favoriteQuotes = favoriteQuotes;
         this.listener = listener;
+    }
+
+    // Yeni listeyi set etmek için bu metodu ekledik
+    public void updateList(List<FavoriteQuotes> newList) {
+        this.favoriteQuotes = newList;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -40,7 +46,6 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.View
         holder.tvAuthor.setText(quote.getAuthor());
         holder.tvCategory.setText(quote.getCategory());
 
-        // Highlight Durumu Kontrolü
         if (quote.isHighlighted()) {
             holder.cardContainer.setBackgroundResource(R.drawable.bg_highlighted_quote);
         } else {
@@ -59,24 +64,6 @@ public class FavoritesAdapter extends RecyclerView.Adapter<FavoritesAdapter.View
         return favoriteQuotes != null ? favoriteQuotes.size() : 0;
     }
 
-    public void removeItem(int position) {
-        if (position >= 0 && position < favoriteQuotes.size()) {
-            favoriteQuotes.remove(position);
-            notifyItemRemoved(position);
-        }
-    }
-
-    public void toggleHighlight(int position) {
-        if (position >= 0 && position < favoriteQuotes.size()) {
-            FavoriteQuotes quote = favoriteQuotes.get(position);
-            quote.setHighlighted(!quote.isHighlighted());
-            notifyItemChanged(position);
-        }
-    }
-
-    public List<FavoriteQuotes> getList() {
-        return favoriteQuotes;
-    }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView tvQuote, tvAuthor, tvCategory;

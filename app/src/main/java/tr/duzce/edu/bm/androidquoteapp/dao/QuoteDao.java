@@ -26,13 +26,4 @@ public interface QuoteDao {
     @Query("SELECT * FROM favorite_quotes WHERE userEmail = :userEmail")
     List<FavoriteQuotes> getAllFavoritesByUser(String userEmail);
 
-    // Geriye dönük uyumluluk ve genel sorgular için
-    @Query("SELECT EXISTS(SELECT 1 FROM favorite_quotes WHERE quoteText = :quoteText)")
-    boolean isFavoritedByQuote(String quoteText);
-
-    @Query("DELETE FROM favorite_quotes WHERE quoteText = :quoteText")
-    void deleteByQuoteText(String quoteText);
-
-    @Query("SELECT * FROM favorite_quotes")
-    List<FavoriteQuotes> getAllFavorites();
 }

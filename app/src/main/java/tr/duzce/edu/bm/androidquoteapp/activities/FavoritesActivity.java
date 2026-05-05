@@ -75,7 +75,13 @@ public class FavoritesActivity extends AppCompatActivity {
             favoriteList = database.quoteDao().getAllFavoritesByUser(currentUserEmail);
             runOnUiThread(() -> {
                 progressBar.setVisibility(View.GONE);
-                if (favoriteList != null) orderByLatest();
+                if (favoriteList != null) {
+                    // Apply current sort before showing
+                    int checkedId = orderByRadioGroup.getCheckedRadioButtonId();
+                    if (checkedId == R.id.SortByAuthor) orderByAuthor();
+                    else if (checkedId == R.id.SortByCategory) orderByCategory();
+                    else orderByLatest();
+                }
                 updateUI();
             });
         });
@@ -111,7 +117,7 @@ public class FavoritesActivity extends AppCompatActivity {
                 adapter = new FavoritesAdapter(favoriteList, this::unfavoriteQuote);
                 rvFavorites.setAdapter(adapter);
             } else {
-                adapter.notifyDataSetChanged();
+                adapter.updateList(favoriteList);
             }
         }
     }

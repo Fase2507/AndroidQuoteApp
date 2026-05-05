@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -94,25 +95,21 @@ public class RegisterActivity extends AppCompatActivity {
         executorService.execute(() -> {
             User existingUser = db.userDao().getUserByEmail(email);
             
-            // Eğer kullanıcı zaten varsa ve DOĞRULANMIŞSA hata ver
             if (existingUser != null && existingUser.isValidated()) {
                 runOnUiThread(() -> emailLayout.setError(getString(R.string.user_already_exists)));
                 return;
             }
 
-            // Yeni kod ve güvenli şifre hash'i hazırla
             String verificationCode = UUID.randomUUID().toString().substring(0, 6).toUpperCase();
             String hashedPassword = PasswordUtils.hashPassword(password);
             long expiryTime = System.currentTimeMillis() + (30 * 60 * 1000); // 30 Dakika
 
             if (existingUser == null) {
-                // Tamamen yeni kayıt
                 User newUser = new User(email, hashedPassword, false); 
                 newUser.setVerificationToken(verificationCode);
                 newUser.setTokenExpiryTimestamp(expiryTime);
                 db.userDao().registerUser(newUser);
             } else {
-                // Kaydı var ama doğrulanmamış; verileri güncelle (Re-Register / Recovery)
                 existingUser.setPassword(hashedPassword);
                 existingUser.setVerificationToken(verificationCode);
                 existingUser.setTokenExpiryTimestamp(expiryTime);
@@ -129,7 +126,8 @@ public class RegisterActivity extends AppCompatActivity {
                     finish();
                 });
             } catch (MessagingException e) {
-                runOnUiThread(() -> Toast.makeText(this, "Email service error", Toast.LENGTH_SHORT).show());
+                Log.e("RegisterActivity", "Email Error: ", e);
+                runOnUiThread(() -> Toast.makeText(this, "Email service error: " + e.getMessage(), Toast.LENGTH_LONG).show());
             }
         });
     }

@@ -15,7 +15,7 @@ import androidx.room.PrimaryKey;
     ),
     indices = {@Index("userEmail")}
 )
-public class FavoriteQuotes {
+public class  FavoriteQuotes {
     @PrimaryKey(autoGenerate = true)
     private int id;
     private String userEmail;
